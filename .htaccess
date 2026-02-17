@@ -1,0 +1,10 @@
+# Disable directory browsing
+Options -Indexes
+
+# Set the default index file
+DirectoryIndex index.php index.html
+
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

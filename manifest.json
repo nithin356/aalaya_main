@@ -1,0 +1,24 @@
+{
+  "name": "Aalaya - Property & Advertisement Management",
+  "short_name": "Aalaya",
+  "description": "A platform for property and advertisement management with referral rewards.",
+  "start_url": "/user/index.php",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

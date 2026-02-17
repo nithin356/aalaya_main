@@ -1,0 +1,354 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #D94589;
+    --primary-light: #F969AA;
+    --secondary: #BD2D6B;
+    --success: #E5B548;
+    --background: #0a0a0b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --white: #ffffff;
+    --radius-lg: 20px;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #0a0a0b;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    margin: 0;
+    color: var(--text-main);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 1000px;
+    background: #141417;
+    border-radius: 32px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Left Side - Visual/Marketing */
+.auth-visual {
+    flex: 1;
+    background: linear-gradient(135deg, #F969AA 0%, #D94589 50%, #BD2D6B 100%);
+    padding: 60px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-visual::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.auth-visual h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.auth-visual p {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 40px;
+}
+
+.feature-list {
+    list-style: none;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.feature-item i {
+    color: #ffd700;
+}
+
+/* Right Side - Login Form */
+.auth-form-side {
+    width: 450px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo-container {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.logo-container img {
+    height: 120px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+.auth-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.auth-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* DigiLocker Button */
+.digilocker-btn {
+    width: 100%;
+    background: #0a0a0b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: #f8fafc;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.digilocker-btn:hover {
+    background: #1c1c21;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+}
+
+.digilocker-btn img {
+    height: 32px;
+    filter: brightness(0) invert(1);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.divider:not(:empty)::before {
+    margin-right: .5em;
+}
+
+.divider:not(:empty)::after {
+    margin-left: .5em;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+}
+
+/* Luxury Input Architecture */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.form-input {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #0a0a0b;
+    color: #f8fafc;
+    transition: all 0.3s ease;
+    outline: none;
+    max-width: 100%;
+}
+
+.input-wrapper .form-input {
+    padding-left: 48px;
+}
+
+.form-input:focus {
+    background: #1c1c21;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(217, 69, 137, 0.2);
+    color: white;
+}
+
+.form-input:focus + i {
+    color: var(--primary-light);
+}
+
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #F969AA 0%, #D94589 50%, #BD2D6B 100%);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(217, 69, 137, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(217, 69, 137, 0.6);
+    filter: brightness(1.1);
+}
+
+.auth-footer {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.auth-footer a {
+    color: var(--primary-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.referral-card-box {
+    background: #0a0a0b;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+}
+
+.referral-card-box:first-of-type {
+    margin-top: 0;
+}
+
+.referral-card-box label {
+    color: #f8fafc;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.referral-card-box .input-wrapper {
+    background: #0a0a0b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.referral-card-box .input-wrapper i {
+    position: static !important;
+    transform: none !important;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: var(--brand-primary);
+}
+
+.referral-card-box .input-wrapper:focus-within {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(217, 69, 137, 0.1);
+}
+
+.referral-card-box .form-input {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    font-size: 0.95rem;
+    width: 100%;
+    flex: 1;
+    color: white !important;
+}
+
+.referral-card-box .form-input:focus {
+    outline: none;
+    box-shadow: none;
+    background: transparent !important;
+}
+
+.lotus-gradient-text {
+    background: linear-gradient(135deg, #F969AA 0%, #D94589 50%, #BD2D6B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+}
+
+@media (max-width: 991px) {
+    .auth-visual {
+        display: none;
+    }
+    .auth-container {
+        max-width: 450px;
+    }
+    .auth-form-side {
+        width: 100%;
+        padding: 40px;
+    }
+}
