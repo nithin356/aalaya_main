@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aalaya.info",
+      "sha256_cert_fingerprints": [
+        "58:29:C4:DB:90:81:8D:E1:CA:45:25:45:AA:84:79:59:39:75:44:97:80:2B:44:88:26:23:04:8C:20:33:A2:2F"
+      ]
+    }
+  }
+]
