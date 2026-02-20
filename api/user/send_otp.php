@@ -47,17 +47,27 @@ try {
     $updateStmt = $pdo->prepare("UPDATE users SET reset_otp = ?, otp_expiry = ? WHERE id = ?");
     $updateStmt->execute([$otp, $expiry, $user['id']]);
 
+    // Get Email Config
+    $config = parse_ini_file(CONFIG_FILE, true);
+    $smtp_from = $config['email']['smtp_from'] ?? 'noreply@aalaya.info';
+
     // Send Email
     $to = $email;
     $subject = "Password Reset OTP - Aalaya";
     $message = "Hello " . $user['full_name'] . ",\n\nYour OTP for password reset is: " . $otp . "\n\nThis OTP is valid for 15 minutes.\n\nRegards,\nTeam Aalaya";
-    $headers = "From: no-reply@aalaya.info";
+    
+    // Headers for better reliability
+    $headers = "From: Aalaya <" . $smtp_from . ">\r\n";
+    $headers .= "Reply-To: " . $smtp_from . "\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
     if (mail($to, $subject, $message, $headers)) {
         echo json_encode(['success' => true, 'message' => 'OTP has been sent to your email.']);
     } else {
-        // Fallback for local testing (remove in production if strict)
-        echo json_encode(['success' => true, 'message' => 'OTP generated (Email delivery failed, check logs).', 'debug_otp' => $otp]);
+        // Fallback or error log
+        error_log("Email delivery failed to $to for OTP $otp");
+        echo json_encode(['success' => false, 'message' => 'Email delivery failed. Please check with administrator.']);
     }
 
 } catch (Exception $e) {
