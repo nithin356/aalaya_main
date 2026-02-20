@@ -23,14 +23,19 @@ class Mailer {
 
         // If port 465, use SSL
         $socketHost = ($port == 465) ? "ssl://$host" : $host;
-        
+        $ehloName = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'aalaya.info';
+
         try {
-            $socket = fsockopen($socketHost, $port, $errno, $errstr, 30);
+            // Initial connection timeout: 10s
+            $socket = fsockopen($socketHost, $port, $errno, $errstr, 10);
             if (!$socket) throw new Exception("Could not connect to SMTP host: $errstr ($errno)");
+
+            // Set read/write timeout: 10s to avoid 60s hangs
+            stream_set_timeout($socket, 10);
 
             $this->getResponse($socket, "220");
 
-            fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n");
+            fwrite($socket, "EHLO $ehloName\r\n");
             $this->getResponse($socket, "250");
 
             // If port 587, use STARTTLS
@@ -40,8 +45,7 @@ class Mailer {
                 if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                     throw new Exception("STARTTLS failed");
                 }
-                // Send EHLO again after STARTTLS
-                fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n");
+                fwrite($socket, "EHLO $ehloName\r\n");
                 $this->getResponse($socket, "250");
             }
 
@@ -75,7 +79,7 @@ class Mailer {
             $headers .= "MIME-Version: 1.0\r\n";
             $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
             $headers .= "Content-Transfer-Encoding: 8bit\r\n";
-            $headers .= "X-Mailer: AalayaMailer/1.1\r\n";
+            $headers .= "X-Mailer: AalayaMailer/1.2\r\n";
 
             fwrite($socket, $headers . "\r\n" . $message . "\r\n.\r\n");
             $this->getResponse($socket, "250");
