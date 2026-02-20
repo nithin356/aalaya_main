@@ -37,8 +37,10 @@ $amount = floatval($invoice['amount']);
 $baseUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . dirname(dirname(dirname($_SERVER['PHP_SELF'])));
 $returnUrl = $baseUrl . '/user/payment_callback.php?order_id={order_id}&invoice_id=' . $invoice_id;
 
+$email = $user['email'] ?? 'support@aalaya.info'; // Fallback if missing
+
 $service = new CashfreeService();
-$result = $service->createOrder($orderId, $amount, 'CUST_' . $user_id, $phone, $returnUrl);
+$result = $service->createOrder($orderId, $amount, 'CUST_' . $user_id, $phone, $email, $returnUrl);
 
 if (isset($result['payment_session_id'])) {
     echo json_encode(['success' => true, 'payment_session_id' => $result['payment_session_id']]);

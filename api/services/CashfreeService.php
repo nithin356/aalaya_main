@@ -81,10 +81,11 @@ class CashfreeService {
      * @param float $amount
      * @param string $customerId
      * @param string $customerPhone
+     * @param string $customerEmail
      * @param string $returnUrl
      * @return array
      */
-    public function createOrder($orderId, $amount, $customerId, $customerPhone, $returnUrl) {
+    public function createOrder($orderId, $amount, $customerId, $customerPhone, $customerEmail, $returnUrl) {
         $url = $this->paymentBaseUrl . '/pg/orders';
         
         $data = [
@@ -93,7 +94,8 @@ class CashfreeService {
             'order_currency' => 'INR',
             'customer_details' => [
                 'customer_id' => $customerId,
-                'customer_phone' => $customerPhone
+                'customer_phone' => $customerPhone,
+                'customer_email' => $customerEmail
             ],
             'order_meta' => [
                 'return_url' => $returnUrl
