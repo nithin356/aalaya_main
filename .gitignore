@@ -1,0 +1,12 @@
+# Sensitive Configuration
+config/config.ini
+
+# XAMPP / Environmental
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Private keys
+*.pem
+*.key
