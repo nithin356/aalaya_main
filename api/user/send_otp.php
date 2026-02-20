@@ -53,8 +53,14 @@ try {
     $config = parse_ini_file(CONFIG_FILE, true);
     $mailer = new Mailer($config);
 
-    $subject = "Password Reset OTP - Aalaya";
-    $message = "Hello " . $user['full_name'] . ",\n\nYour OTP for password reset is: " . $otp . "\n\nThis OTP is valid for 15 minutes.\n\nRegards,\nTeam Aalaya";
+    $subject = "Your Aalaya Verification Code";
+    $message = "Hello " . $user['full_name'] . ",\n\n" .
+               "You requested a password reset for your Aalaya account. Please use the following One-Time Password (OTP) to proceed:\n\n" .
+               "Verification Code: " . $otp . "\n\n" .
+               "This code is valid for 15 minutes. For security, do not share this code with anyone.\n\n" .
+               "If you did not request this reset, please ignore this email or contact support at support@aalaya.info.\n\n" .
+               "Best Regards,\n" .
+               "Team Aalaya";
 
     if ($mailer->send($email, $subject, $message)) {
         echo json_encode(['success' => true, 'message' => 'OTP has been sent to your email.']);

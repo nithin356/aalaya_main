@@ -5,7 +5,7 @@
  */
 
 class Mailer {
-    private $config;
+    protected $config;
 
     public function __construct($config) {
         $this->config = $config['email'];
@@ -63,13 +63,19 @@ class Mailer {
             fwrite($socket, "DATA\r\n");
             $this->getResponse($socket, "354");
 
+            $messageId = sprintf("<%s.%s@aalaya.info>", bin2hex(random_bytes(16)), time());
+            
             $headers = "From: Aalaya <$from>\r\n";
             $headers .= "To: <$to>\r\n";
             $headers .= "Subject: $subject\r\n";
             $headers .= "Date: " . date('r') . "\r\n";
-            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "Message-ID: $messageId\r\n";
+            $headers .= "Return-Path: <$from>\r\n";
+            $headers .= "X-Priority: 3 (Normal)\r\n";
             $headers .= "MIME-Version: 1.0\r\n";
-            $headers .= "X-Mailer: AalayaMailer/1.0\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "Content-Transfer-Encoding: 8bit\r\n";
+            $headers .= "X-Mailer: AalayaMailer/1.1\r\n";
 
             fwrite($socket, $headers . "\r\n" . $message . "\r\n.\r\n");
             $this->getResponse($socket, "250");
