@@ -17,6 +17,12 @@ $is_gateway_registration_flow = !empty($_SESSION['hide_network_tab'])
     || strtolower($_SESSION['user_payment_tag'] ?? '') === 'gateway user';
 $show_gateway_payment = $is_gateway_registration_flow;
 $show_manual_payment = !$is_gateway_registration_flow;
+
+// Load Cashfree Mode
+$config = parse_ini_file('../config/config.ini', true);
+$cashfree_mode = strtolower($config['cashfree']['payment_mode'] ?? ($config['cashfree']['mode'] ?? 'test'));
+// Cashfree SDK expects 'sandbox' or 'production'
+$sdk_mode = ($cashfree_mode === 'prod' || $cashfree_mode === 'production') ? 'production' : 'sandbox';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -147,7 +153,7 @@ $show_manual_payment = !$is_gateway_registration_flow;
 
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <script>
-        const cashfree = window.Cashfree ? window.Cashfree({ mode: "sandbox" }) : null;
+        const cashfree = window.Cashfree ? window.Cashfree({ mode: "<?php echo $sdk_mode; ?>" }) : null;
         const errorMsg = document.getElementById('errorMsg');
 
         // Safety: if cached/duplicated DOM appears, keep only first payment card
