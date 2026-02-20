@@ -44,19 +44,22 @@ try {
         $pdo->exec("ALTER TABLE users ADD COLUMN reset_otp VARCHAR(6) NULL, ADD COLUMN otp_expiry DATETIME NULL");
     }
 
+    // Store OTP in database
     $updateStmt = $pdo->prepare("UPDATE users SET reset_otp = ?, otp_expiry = ? WHERE id = ?");
     $updateStmt->execute([$otp, $expiry, $user['id']]);
 
-    // Send Email using Authenticated SMTP
+    // Get Email Config & Send using Mailer class
     require_once '../../includes/Mailer.php';
-    $mailer = new Mailer();
+    $config = parse_ini_file(CONFIG_FILE, true);
+    $mailer = new Mailer($config);
+
     $subject = "Password Reset OTP - Aalaya";
     $message = "Hello " . $user['full_name'] . ",\n\nYour OTP for password reset is: " . $otp . "\n\nThis OTP is valid for 15 minutes.\n\nRegards,\nTeam Aalaya";
 
     if ($mailer->send($email, $subject, $message)) {
         echo json_encode(['success' => true, 'message' => 'OTP has been sent to your email.']);
     } else {
-        error_log("SMTP Email delivery failed to $email for OTP $otp");
+        error_log("Email delivery failed to $email for OTP $otp");
         echo json_encode(['success' => false, 'message' => 'Email delivery failed. Please check with administrator.']);
     }
 

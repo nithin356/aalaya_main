@@ -1,78 +1,102 @@
 <?php
 /**
- * Simple SMTP Mailer for Aalaya
- * Provides authenticated SMTP delivery to prevent emails from going to spam.
+ * Aalaya Mailer Class
+ * Handles authenticated SMTP email delivery to prevent spam.
  */
 
 class Mailer {
-    private $host;
-    private $port;
-    private $user;
-    private $pass;
-    private $from;
+    private $config;
 
-    public function __construct() {
-        $config = parse_ini_file(dirname(__DIR__) . '/config/config.ini', true);
-        $this->host = $config['email']['smtp_host'] ?? '';
-        $this->port = $config['email']['smtp_port'] ?? 465;
-        $this->user = $config['email']['smtp_user'] ?? '';
-        $this->pass = $config['email']['smtp_pass'] ?? '';
-        $this->from = $config['email']['smtp_from'] ?? '';
+    public function __construct($config) {
+        $this->config = $config['email'];
     }
 
+    /**
+     * Sends an email using authenticated SMTP.
+     */
     public function send($to, $subject, $message) {
-        $newline = "\r\n";
-        $timeout = 30;
+        $host = $this->config['smtp_host'];
+        $port = $this->config['smtp_port'];
+        $user = $this->config['smtp_user'];
+        $pass = $this->config['smtp_pass'];
+        $from = $this->config['smtp_from'];
 
-        // Use SSL/TLS prefix if port is 465
-        $host = ($this->port == 465) ? "ssl://{$this->host}" : $this->host;
+        // If port 465, use SSL
+        $socketHost = ($port == 465) ? "ssl://$host" : $host;
         
-        $socket = fsockopen($host, $this->port, $errno, $errstr, $timeout);
-        if (!$socket) {
-            error_log("SMTP Connection Error: $errstr ($errno)");
-            return false;
-        }
+        try {
+            $socket = fsockopen($socketHost, $port, $errno, $errstr, 30);
+            if (!$socket) throw new Exception("Could not connect to SMTP host: $errstr ($errno)");
 
-        $getResponse = function($socket) {
-            $response = "";
-            while ($str = fgets($socket, 515)) {
-                $response .= $str;
-                if (substr($str, 3, 1) == " ") break;
+            $this->getResponse($socket, "220");
+
+            fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n");
+            $this->getResponse($socket, "250");
+
+            // If port 587, use STARTTLS
+            if ($port == 587) {
+                fwrite($socket, "STARTTLS\r\n");
+                $this->getResponse($socket, "220");
+                if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                    throw new Exception("STARTTLS failed");
+                }
+                // Send EHLO again after STARTTLS
+                fwrite($socket, "EHLO " . $_SERVER['HTTP_HOST'] . "\r\n");
+                $this->getResponse($socket, "250");
             }
-            return $response;
-        };
 
-        $sendCommand = function($socket, $command) use ($newline, $getResponse) {
-            fputs($socket, $command . $newline);
-            return $getResponse($socket);
-        };
+            fwrite($socket, "AUTH LOGIN\r\n");
+            $this->getResponse($socket, "334");
 
-        $getResponse($socket); // Initial response
+            fwrite($socket, base64_encode($user) . "\r\n");
+            $this->getResponse($socket, "334");
 
-        $sendCommand($socket, "EHLO " . $_SERVER['HTTP_HOST']);
-        $sendCommand($socket, "AUTH LOGIN");
-        $sendCommand($socket, base64_encode($this->user));
-        $sendCommand($socket, base64_encode($this->pass));
-        $sendCommand($socket, "MAIL FROM: <{$this->from}>");
-        $sendCommand($socket, "RCPT TO: <{$to}>");
-        $sendCommand($socket, "DATA");
+            fwrite($socket, base64_encode($pass) . "\r\n");
+            $this->getResponse($socket, "235");
 
-        // Prepare Headers
-        $headers = "MIME-Version: 1.0" . $newline;
-        $headers .= "Content-type: text/plain; charset=utf-8" . $newline;
-        $headers .= "To: <{$to}>" . $newline;
-        $headers .= "From: Aalaya <{$this->from}>" . $newline;
-        $headers .= "Subject: {$subject}" . $newline;
-        $headers .= "Date: " . date("r") . $newline;
-        $headers .= "Message-ID: <" . time() . "noreply@" . $this->host . ">" . $newline;
-        $headers .= $newline;
+            fwrite($socket, "MAIL FROM: <$from>\r\n");
+            $this->getResponse($socket, "250");
 
-        fputs($socket, $headers . $message . $newline . "." . $newline);
-        $getResponse($socket);
+            fwrite($socket, "RCPT TO: <$to>\r\n");
+            $this->getResponse($socket, "250");
 
-        $sendCommand($socket, "QUIT");
-        fclose($socket);
+            fwrite($socket, "DATA\r\n");
+            $this->getResponse($socket, "354");
 
-        return true;
+            $headers = "From: Aalaya <$from>\r\n";
+            $headers .= "To: <$to>\r\n";
+            $headers .= "Subject: $subject\r\n";
+            $headers .= "Date: " . date('r') . "\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "X-Mailer: AalayaMailer/1.0\r\n";
+
+            fwrite($socket, $headers . "\r\n" . $message . "\r\n.\r\n");
+            $this->getResponse($socket, "250");
+
+            fwrite($socket, "QUIT\r\n");
+            fclose($socket);
+
+            return true;
+        } catch (Exception $e) {
+            error_log("Mailer Error: " . $e->getMessage());
+            // Fallback to mail() if SMTP fails
+            $headers = "From: Aalaya <$from>\r\n";
+            $headers .= "Reply-To: $from\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8";
+            return mail($to, $subject, $message, $headers);
+        }
+    }
+
+    private function getResponse($socket, $expectedCode) {
+        $response = "";
+        while ($line = fgets($socket, 515)) {
+            $response .= $line;
+            if (substr($line, 3, 1) == " ") break;
+        }
+        if (substr($response, 0, 3) !== $expectedCode) {
+            throw new Exception("SMTP Error: " . $response);
+        }
+        return $response;
     }
 }
