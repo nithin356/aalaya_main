@@ -1,0 +1,44 @@
+[database]
+host = localhost
+username = root
+password = 
+database = aalaya_db
+port = 3306
+
+[paths]
+upload_path = C:/xampp/htdocs/aalaya_main/assets/uploads/
+base_url = http://localhost/aalaya_main/
+
+[referral]
+level1_percentage = 20
+level2_percentage = 10
+max_levels = 2
+
+[images]
+property_max_size = 2097152
+advertisement_max_size = 2097152
+allowed_extensions = jpg,jpeg,png,webp
+property_image_width = 800
+property_image_height = 600
+advertisement_image_width = 1200
+advertisement_image_height = 400
+
+[cashfree]
+; Verification Suite
+verification_client_id = YOUR_PROD_VERIFICATION_ID
+verification_client_secret = YOUR_PROD_VERIFICATION_SECRET
+
+; Payment Gateway
+payment_client_id = YOUR_PROD_PAYMENT_ID
+payment_client_secret = YOUR_PROD_PAYMENT_SECRET
+
+mode = PROD
+verification_mode = PROD
+payment_mode = PROD
+
+[email]
+smtp_host = smtpout.secureserver.net
+smtp_user = support@aalaya.info
+smtp_pass = YOUR_EMAIL_PASSWORD
+smtp_port = 465
+smtp_from = support@aalaya.info

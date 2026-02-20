@@ -1,0 +1,14 @@
+# Configuration files
+config/config.ini
+config/config.prod.ini
+
+# Logs
+*.log
+
+# Uploads
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# OS generated files
+.DS_Store
+Thumbs.db
