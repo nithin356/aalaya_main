@@ -42,8 +42,10 @@ try {
     // 6. Income Trend (Last 30 days)
     $stmtIncome = $pdo->query("
         SELECT DATE(updated_at) as date, SUM(amount) as total 
-        FROM invoices 
-        WHERE status = 'paid' AND updated_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                FROM invoices 
+                WHERE status = 'paid'
+                    AND (payment_method IS NULL OR payment_method <> 'cashfree')
+                    AND updated_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
         GROUP BY DATE(updated_at)
         ORDER BY date ASC
     ");
@@ -61,7 +63,7 @@ try {
 
     // 8. Total Points Distributed (Sum of all points from transactions)
     // 8. Total Subscription Amount (Sum of all paid Registration Fees)
-    $stmtTotalPoints = $pdo->query("SELECT SUM(amount) as total FROM invoices WHERE description = 'Registration Fee' AND status = 'paid'");
+    $stmtTotalPoints = $pdo->query("SELECT SUM(amount) as total FROM invoices WHERE description = 'Registration Fee' AND status = 'paid' AND (payment_method IS NULL OR payment_method <> 'cashfree')");
     $totalPoints = $stmtTotalPoints->fetchColumn() ?: 0;
 
     // 9. Total Investments (Sum of all investment amounts)

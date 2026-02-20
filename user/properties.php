@@ -40,7 +40,7 @@ $properties = $prop_stmt->fetchAll();
                         </div>
                         <hr>
                         <a href="profile.php"><i class="bi bi-person"></i> My Profile</a>
-                        <a href="dashboard.php?tab=wallet"><i class="bi bi-wallet2"></i> My Earnings</a>
+                        <a href="dashboard.php?tab=wallet"><i class="bi bi-wallet2"></i> AALAYA POINTS</a>
                         <hr>
                         <a href="../api/user/logout.php" class="text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
@@ -77,11 +77,12 @@ $properties = $prop_stmt->fetchAll();
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="card-price">₹<?php echo number_format($prop['price']); ?></span>
-                                    <button class="btn-primary btn-enquire" 
+                                    <!-- <button class="btn-primary btn-enquire" 
                                             data-type="property" 
                                             data-id="<?php echo $prop['id']; ?>" 
                                             data-title="<?php echo htmlspecialchars($prop['title']); ?>"
-                                            style="font-size: 0.8rem;">Enquire</button>
+                                            style="font-size: 0.8rem;">Enquire</button> -->
+                                    <span class="text-white-50 small" style="font-size: 0.7rem;">Call: 9902766999</span>
                                 </div>
                             </div>
                         </div>

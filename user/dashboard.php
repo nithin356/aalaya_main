@@ -39,7 +39,7 @@ $show_payment_block = !empty($pending_registration_invoice);
                     <div class="dropdown-menu-custom" id="profileMenu">
                         <div class="dropdown-header">
                             <strong><?php echo htmlspecialchars($_SESSION['user_name']); ?></strong>
-                            <span>Verified Investor</span>
+                            <span><?php echo htmlspecialchars($_SESSION['user_payment_tag'] ?? 'Verified Investor'); ?></span>
                         </div>
                         <hr>
                         <a href="profile.php"><i class="bi bi-person"></i> My Profile</a>
@@ -76,10 +76,12 @@ $show_payment_block = !empty($pending_registration_invoice);
                 <i class="bi bi-houses mobile-icon"></i>
                 <span>Properties</span>
             </div>
+            <?php if (empty($_SESSION['hide_network_tab'])): ?>
             <div class="category-tab" data-target="my-network">
                 <i class="bi bi-person mobile-icon"></i>
                 <span>Network</span>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 

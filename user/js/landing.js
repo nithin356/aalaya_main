@@ -426,6 +426,7 @@ function showPropertyDetails(id) {
                 </div>
             </div>
             
+            /*
             ${
               item.status !== "sold"
                 ? `
@@ -448,10 +449,16 @@ function showPropertyDetails(id) {
             </div>
             `
             }
+            */
 
-            <button class="btn-primary w-100 py-3 mt-2" onclick="handleEnquire(this, 'property', ${item.id}, '${displayTitle.replace(/'/g, "\\'")}')">
+            <div class="mb-4 p-4 rounded-4 text-center" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);">
+                <p class="text-white-50 mb-0">For more details or to express interest, please contact:</p>
+                <h2 class="lotus-gradient-text mt-2 mb-0">9902766999</h2>
+            </div>
+
+            <!-- <button class="btn-primary w-100 py-3 mt-2" onclick="handleEnquire(this, 'property', ${item.id}, '${displayTitle.replace(/'/g, "\\'")}')">
                 Express Interest & Enquire
-            </button>
+            </button> -->
         </div>
     `;
 
@@ -678,9 +685,10 @@ function renderGallery(items, category) {
                                 <h2 class="display-5 fw-bold text-white mb-2">${displayTitle}</h2>
                                 <p class="text-white-50 lead mb-3">${item.company_name || "Aalaya Partner"}</p>
                                 <p class="text-white d-none d-md-block mx-auto mb-4" style="max-width: 600px; opacity: 0.9;">${item.description || ""}</p>
-                                <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" onclick="handleEnquire(this, 'advertisement', ${item.id}, '${displayTitle.replace(/'/g, "\\'")}')">
+                                <!-- <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" onclick="handleEnquire(this, 'advertisement', ${item.id}, '${displayTitle.replace(/'/g, "\\'")}')">
                                     Enquire Now
-                                </button>
+                                </button> -->
+                                <p class="text-white mt-4">For more details contact: <strong>9902766999</strong></p>
                             </div>
                          </div>
                     </div>
@@ -723,107 +731,25 @@ function renderNetwork(data) {
         <div class="col-md-6 mt-5">
             <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
                 <i class="bi bi-wallet2 text-primary" style="font-size: 1.2rem;"></i>
-                <span>Total Earnings</span>
+            <span>AALAYA POINTS</span>
             </h4>
             <div class="data-card p-4 text-center" style="border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); background: #141417;">
                 <div class="mb-1">
                     <span class="text-white opacity-50 fw-bold text-uppercase small" style="letter-spacing: 0.1em;">Aalaya Points</span>
                 </div>
                 <h1 class="display-4 fw-bold mb-0 d-block lotus-gradient-text">${parseFloat(data.total_points || 0).toLocaleString()}</h1>
-                <p class="mt-3 text-white-50 small">Points are updated in real-time based on your network activity.</p>
+            <p class="mt-3 text-white-50 small">AALAYA POINTS are updated in real-time.</p>
             </div>
         </div>
 
         <div class="col-md-6 mt-5">
-            <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-people text-primary" style="font-size: 1.2rem;"></i>
-                <span>Recent Joins</span>
-            </h4>
-            <div class="data-card overflow-hidden" style="border-radius: 24px; background: #141417; border: 1px solid rgba(255, 255, 255, 0.05);">
-                <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead style="background: rgba(255, 255, 255, 0.02);">
-                            <tr>
-                                <th class="ps-4">Name</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${
-                              data.network.length > 0
-                                ? data.network
-                                    .slice(0, 5)
-                                    .map(
-                                      (ref) => `
-                                <tr>
-                                    <td class="ps-4 fw-bold text-white">${ref.full_name}</td>
-                                    <td>
-                                        <span class="badge ${ref.status === "active" ? "bg-success" : "bg-danger"} rounded-pill">${ref.status === "active" ? "Active" : "Inactive"}</span>
-                                    </td>
-                                    <td class="text-muted small">${new Date(ref.created_at).toLocaleDateString()}</td>
-                                </tr>
-                            `,
-                                    )
-                                    .join("")
-                                : `
-                                <tr>
-                                    <td colspan="3" class="text-center py-5">
-                                        <p class="text-white-50 small mb-0">No network members yet.</p>
-                                    </td>
-                                </tr>
-                            `
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="col-12 mt-5 pt-4 mb-5">
-            <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-clock-history text-primary" style="font-size: 1.2rem;"></i>
-                <span>Earning History</span>
-            </h4>
-            <div class="data-card overflow-hidden" style="border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); background: #141417;">
-               <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead style="background: rgba(255, 255, 255, 0.02);">
-                            <tr>
-                                <th class="ps-4">Description</th>
-                                <th>Level</th>
-                                <th>Points</th>
-                                <th class="text-end pe-4">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${
-                              data.earnings.length > 0
-                                ? data.earnings
-                                    .map(
-                                      (earn) => `
-                                <tr>
-                                    <td class="ps-4 fw-bold text-white">Network Commission (${earn.percentage}%)</td>
-                                    <td><span class="badge bg-primary-subtle text-primary rounded-pill px-3">Level ${earn.level}</span></td>
-                                    <td class="text-success fw-bold">+${earn.points_earned}</td>
-                                    <td class="text-end pe-4 text-muted small">${new Date(earn.created_at).toLocaleDateString()}</td>
-                                </tr>
-                            `,
-                                    )
-                                    .join("")
-                                : `
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-white-50">
-                                        <i class="bi bi-receipt opacity-25 d-block mb-3" style="font-size: 2rem;"></i>
-                                        No earning history yet.
-                                    </td>
-                                </tr>
-                            `
-                            }
-                        </tbody>
-                    </table>
-                </div>
+          <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle text-primary" style="font-size: 1.2rem;"></i>
+            <span>Overview</span>
+          </h4>
+          <div class="data-card p-4" style="border-radius: 24px; background: #141417; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <p style="display:none;" class="mb-2 text-white-50">Transaction and referral tables are currently hidden.</p>
+            <p class="mb-0 text-white">Registered members: <strong>${data.referrals_count}</strong></p>
             </div>
         </div>
     `;
@@ -1000,11 +926,21 @@ window.showUserRegisterModal = function (referralCode) {
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-white-50">Password</label>
-                                    <input type="password" name="password" id="reg_password" class="form-control bg-dark border-secondary text-white rounded-3" placeholder="Create Password" required minlength="6">
+                                  <div class="position-relative">
+                                    <input type="password" name="password" id="reg_password" class="form-control bg-dark border-secondary text-white rounded-3 pe-5" placeholder="Create Password" required minlength="6">
+                                    <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y text-white-50" data-toggle-password="reg_password" style="background:none; border:none;">
+                                      <i class="bi bi-eye"></i>
+                                    </button>
+                                  </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-white-50">Confirm Password</label>
-                                    <input type="password" name="confirm_password" id="reg_confirm_password" class="form-control bg-dark border-secondary text-white rounded-3" placeholder="Confirm Password" required>
+                                  <div class="position-relative">
+                                    <input type="password" name="confirm_password" id="reg_confirm_password" class="form-control bg-dark border-secondary text-white rounded-3 pe-5" placeholder="Confirm Password" required>
+                                    <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y text-white-50" data-toggle-password="reg_confirm_password" style="background:none; border:none;">
+                                      <i class="bi bi-eye"></i>
+                                    </button>
+                                  </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-white-50">Aadhaar Number</label>
@@ -1062,4 +998,15 @@ window.showUserRegisterModal = function (referralCode) {
   document.getElementById("modal_referrer_code").value = referralCode;
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
+
+  modal.querySelectorAll('[data-toggle-password]').forEach(button => {
+    button.onclick = function () {
+      const input = document.getElementById(this.getAttribute('data-toggle-password'));
+      if (!input) return;
+      const icon = this.querySelector('i');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+    };
+  });
 };

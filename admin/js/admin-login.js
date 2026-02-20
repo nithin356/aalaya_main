@@ -2,6 +2,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('adminLoginForm');
     const loginBtn = document.getElementById('loginBtn');
     const loginError = document.getElementById('loginError');
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('adminPasswordToggle');
+
+    if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener('click', function () {
+            const icon = this.querySelector('i');
+            const show = passwordInput.type === 'password';
+            passwordInput.type = show ? 'text' : 'password';
+            if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
 
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();

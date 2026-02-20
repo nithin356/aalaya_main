@@ -63,16 +63,29 @@ if (isset($_SESSION['user_id'])) {
                 </div>
 
                 <div class="mb-3">
-                    <div class="input-wrapper">
-                        <input type="password" name="password" class="form-input" placeholder="Create Password (min 6 chars)" required minlength="6">
+                    <div class="input-wrapper password-field">
+                        <input type="password" id="registerPassword" name="password" class="form-input" placeholder="Create Password (min 6 chars)" required minlength="6">
                         <i class="bi bi-lock"></i>
+                        <button type="button" class="password-toggle" data-toggle-password="registerPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="input-wrapper password-field">
+                        <input type="password" id="registerConfirmPassword" name="confirm_password" class="form-input" placeholder="Confirm Password" required>
+                        <i class="bi bi-lock-fill"></i>
+                        <button type="button" class="password-toggle" data-toggle-password="registerConfirmPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <div class="input-wrapper">
-                        <input type="password" name="confirm_password" class="form-input" placeholder="Confirm Password" required>
-                        <i class="bi bi-lock-fill"></i>
+                        <input type="email" name="email" class="form-input" placeholder="Email Address" required>
+                        <i class="bi bi-envelope"></i>
                     </div>
                 </div>
 
@@ -85,18 +98,15 @@ if (isset($_SESSION['user_id'])) {
 
                 <div class="mb-3">
                     <div class="input-wrapper">
-                        <input type="text" name="pan_number" class="form-input" placeholder="PAN Number" maxlength="10" style="text-transform: uppercase;" required pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}">
+                        <input type="text" name="pan_number" class="form-input" placeholder="PAN Number" maxlength="10" style="text-transform: uppercase;" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
                         <i class="bi bi-card-text"></i>
                     </div>
                 </div>
 
-                <!-- QR Payment Section -->
+                <!-- Payment Section -->
                 <div class="mb-4 p-4 text-center" style="background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.2);">
-                    <p class="small text-white-50 mb-3">To activate your account, please pay the registration fee of <strong>₹1111</strong> via the QR code below.</p>
-                    <div class="qr-placeholder mb-3" style="width: 180px; height: 180px; margin: 0 auto; background: white; padding: 10px; border-radius: 12px;">
-                        <img src="../assets/images/qr_payment.png" alt="Payment QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Registration+Fee+1111';">
-                    </div>
-                    <p class="small text-warning mb-0"><i class="bi bi-info-circle me-1"></i> Your account will be on hold until admin verifies the payment.</p>
+                    <p class="small text-white-50 mb-1">AALAYA POINTS activation fee: <strong>1111</strong></p>
+                    <p class="small text-warning mb-0"><i class="bi bi-info-circle me-1"></i> After registration, you will be redirected to secure test gateway payment.</p>
                 </div>
 
                 <!-- Register Button -->
@@ -148,12 +158,12 @@ if (isset($_SESSION['user_id'])) {
                 const result = await response.json();
 
                 if (result.success) {
-                    successDiv.innerText = result.message + ' Redirecting to login...';
+                    successDiv.innerText = result.message + ' Redirecting to payment...';
                     successDiv.style.display = 'block';
                     form.reset();
                     setTimeout(() => {
-                        window.location.href = 'index.php';
-                    }, 2000);
+                        window.location.href = result.redirect_url || 'dashboard.php';
+                    }, 1000);
                 } else {
                     errorDiv.innerText = result.message;
                     errorDiv.style.display = 'block';
@@ -166,6 +176,17 @@ if (isset($_SESSION['user_id'])) {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
+        });
+
+        document.querySelectorAll('[data-toggle-password]').forEach(button => {
+            button.addEventListener('click', function () {
+                const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                if (!input) return;
+                const icon = this.querySelector('i');
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
         });
     });
     </script>

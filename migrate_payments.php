@@ -17,6 +17,21 @@ try {
         $pdo->exec("ALTER TABLE invoices MODIFY COLUMN status ENUM('pending', 'paid', 'cancelled', 'pending_verification') DEFAULT 'pending'");
     }
 
+    // 3. Backfill payment_method for legacy rows where it is NULL
+    // Manual proof present -> manual
+    $pdo->exec("UPDATE invoices
+        SET payment_method = 'manual'
+        WHERE payment_method IS NULL
+          AND (
+              (manual_utr_id IS NOT NULL AND manual_utr_id <> '')
+              OR (manual_payment_screenshot IS NOT NULL AND manual_payment_screenshot <> '')
+          )");
+
+    // Remaining legacy rows default to cashfree
+    $pdo->exec("UPDATE invoices
+        SET payment_method = 'cashfree'
+        WHERE payment_method IS NULL");
+
     echo "Schema updated successfully.\n";
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";

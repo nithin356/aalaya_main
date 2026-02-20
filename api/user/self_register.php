@@ -26,8 +26,8 @@ try {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (!$phone || !$aadhaar_number || !$pan_number || !$password) {
-        throw new Exception("Mandatory fields missing: Phone, Password, Aadhaar, and PAN are required.");
+    if (!$phone || !$email || !$aadhaar_number || !$pan_number || !$password) {
+        throw new Exception("Mandatory fields missing: Phone, Email, Password, Aadhaar, and PAN are required.");
     }
 
     if ($password !== $confirm_password) {
@@ -85,9 +85,16 @@ try {
     $user_id = $pdo->lastInsertId();
 
     // DEFAULT STATUS: PENDING (Set account to 'hold' until payment is verified)
-    $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, created_at, updated_at) 
-               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, NOW(), NOW())";
+    $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, payment_method, created_at, updated_at) 
+               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
     $pdo->prepare($invSql)->execute([$user_id]);
+    $invoice_id = $pdo->lastInsertId();
+
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['user_name'] = $full_name ?? 'User';
+    $_SESSION['is_logged_in'] = true;
+    $_SESSION['user_payment_tag'] = 'Gateway User';
+    $_SESSION['hide_network_tab'] = true;
 
     /* REMOVED AUTO-ACTIVATION logic - Admin must verify payment now
     // Update User Points
@@ -99,7 +106,12 @@ try {
     $pdo->prepare($logSql)->execute([$user_id, $user_id]);
     */
 
-    echo json_encode(['success' => true, 'message' => 'Registration successful! You can now login with your phone number and password.']);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Registration successful. Continue to secure payment.',
+        'invoice_id' => intval($invoice_id),
+        'redirect_url' => 'payment.php?invoice_id=' . intval($invoice_id)
+    ]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

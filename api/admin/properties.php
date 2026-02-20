@@ -97,6 +97,48 @@ try {
                         $_POST['bedrooms'] ?? 0, $_POST['bathrooms'] ?? 0, 
                         $_POST['status'] ?? 'available', $property_id
                     ]);
+
+                    // Handle removal of existing media while editing
+                    $remove_media_ids = trim($_POST['remove_media_ids'] ?? '');
+                    if ($remove_media_ids !== '') {
+                        $remove_ids = array_values(array_filter(array_map('intval', explode(',', $remove_media_ids))));
+
+                        if (!empty($remove_ids)) {
+                            $placeholders = implode(',', array_fill(0, count($remove_ids), '?'));
+                            $params = array_merge([$property_id], $remove_ids);
+
+                            $selSql = "SELECT id, file_path FROM media WHERE entity_type='property' AND entity_id=? AND id IN ($placeholders)";
+                            $selStmt = $pdo->prepare($selSql);
+                            $selStmt->execute($params);
+                            $rowsToDelete = $selStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                            $delSql = "DELETE FROM media WHERE entity_type='property' AND entity_id=? AND id IN ($placeholders)";
+                            $delStmt = $pdo->prepare($delSql);
+                            $delStmt->execute($params);
+
+                            foreach ($rowsToDelete as $row) {
+                                $fullPath = '../../' . ltrim($row['file_path'], '/');
+                                if (is_file($fullPath)) {
+                                    @unlink($fullPath);
+                                }
+                            }
+
+                            // Re-sync primary media and property image_path
+                            $resetPrime = $pdo->prepare("UPDATE media SET is_primary = 0 WHERE entity_type='property' AND entity_id=?");
+                            $resetPrime->execute([$property_id]);
+
+                            $firstMediaStmt = $pdo->prepare("SELECT id, file_path FROM media WHERE entity_type='property' AND entity_id=? ORDER BY id ASC LIMIT 1");
+                            $firstMediaStmt->execute([$property_id]);
+                            $firstMedia = $firstMediaStmt->fetch(PDO::FETCH_ASSOC);
+
+                            if ($firstMedia) {
+                                $pdo->prepare("UPDATE media SET is_primary=1 WHERE id=?")->execute([$firstMedia['id']]);
+                                $pdo->prepare("UPDATE properties SET image_path=? WHERE id=?")->execute([$firstMedia['file_path'], $property_id]);
+                            } else {
+                                $pdo->prepare("UPDATE properties SET image_path=NULL WHERE id=?")->execute([$property_id]);
+                            }
+                        }
+                    }
                 } else {
                     // Insert New
                     $sql = "INSERT INTO properties (title, owner_name, description, property_type, price, location, area, area_unit, bedrooms, bathrooms, status, created_by) 

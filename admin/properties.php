@@ -49,6 +49,7 @@ require_once 'includes/header.php';
         <form id="propertyForm" enctype="multipart/form-data">
             <div class="modal-body">
                 <input type="hidden" id="propertyId" name="property_id">
+                <input type="hidden" id="removeMediaIds" name="remove_media_ids" value="">
                 
                 <div class="form-row">
                     <div class="form-group">

@@ -38,6 +38,22 @@
                     }
                 });
             });
+
+            const globalSearch = document.getElementById('adminGlobalSearch');
+            if (globalSearch) {
+                globalSearch.addEventListener('input', function () {
+                    const query = this.value.trim().toLowerCase();
+                    const rows = document.querySelectorAll('.table-responsive table tbody tr');
+
+                    rows.forEach(row => {
+                        const isPlaceholder = row.querySelector('td[colspan]');
+                        if (isPlaceholder) return;
+
+                        const rowText = row.textContent.toLowerCase();
+                        row.style.display = !query || rowText.includes(query) ? '' : 'none';
+                    });
+                });
+            }
         });
     </script>
 

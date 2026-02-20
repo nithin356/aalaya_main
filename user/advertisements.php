@@ -40,7 +40,7 @@ $ads = $ad_stmt->fetchAll();
                         </div>
                         <hr>
                         <a href="profile.php"><i class="bi bi-person"></i> My Profile</a>
-                        <a href="dashboard.php?tab=wallet"><i class="bi bi-wallet2"></i> My Earnings</a>
+                        <a href="dashboard.php?tab=wallet"><i class="bi bi-wallet2"></i> AALAYA POINTS</a>
                         <hr>
                         <a href="../api/user/logout.php" class="text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
@@ -72,11 +72,12 @@ $ads = $ad_stmt->fetchAll();
                                 <span class="text-primary fw-bold small text-uppercase"><?php echo htmlspecialchars($ad['ad_type']); ?></span>
                                 <h3 class="card-title mt-2"><?php echo htmlspecialchars($ad['title']); ?></h3>
                                 <p class="text-muted small"><?php echo htmlspecialchars($ad['company_name']); ?></p>
-                                <button class="btn-primary btn-enquire mt-3" 
+                                <!-- <button class="btn-primary btn-enquire mt-3" 
                                         data-type="advertisement" 
                                         data-id="<?php echo $ad['id']; ?>" 
                                         data-title="<?php echo htmlspecialchars($ad['title']); ?>"
-                                        style="font-size: 0.8rem;">Learn More</button>
+                                        style="font-size: 0.8rem;">Learn More</button> -->
+                                <p class="text-white-50 small mt-3">For more details contact: <strong>9902766999</strong></p>
                             </div>
                         </div>
                     </div>

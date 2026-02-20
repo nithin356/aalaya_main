@@ -38,7 +38,7 @@ try {
 
     if ($action === 'approve') {
         // 2. Mark Paid
-        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', updated_at=NOW() WHERE id=?");
+        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_method='manual', updated_at=NOW() WHERE id=?");
         $stmt->execute([$invoice_id]);
 
         // 3. Reward Logic (Based on payment_callback.php)

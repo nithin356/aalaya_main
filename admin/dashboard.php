@@ -61,7 +61,7 @@ require_once 'includes/header.php';
             <i class="bi bi-coin"></i>
         </div>
         <div class="stat-info">
-            <span class="label">Subscription Amount</span>
+            <span class="label">AALAYA POINTS</span>
             <span class="value" id="statPoints">0</span>
         </div>
     </div>

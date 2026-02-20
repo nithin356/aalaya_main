@@ -8,3 +8,23 @@ DirectoryIndex index.php index.html
 RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Canonical admin URLs: /admin/page.php -> /admin/page
+RewriteCond %{THE_REQUEST} \s/+admin/([A-Za-z0-9_-]+)\.php[\s?] [NC]
+RewriteRule ^admin/([A-Za-z0-9_-]+)\.php$ /admin/$1 [R=301,L,NE]
+
+# Extensionless admin URLs: /admin/page -> /admin/page.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f
+RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA,NC]
+
+# Canonical user URLs: /user/page.php -> /user/page
+RewriteCond %{THE_REQUEST} \s/+user/([A-Za-z0-9_-]+)\.php[\s?] [NC]
+RewriteRule ^user/([A-Za-z0-9_-]+)\.php$ /user/$1 [R=301,L,NE]
+
+# Extensionless user URLs: /user/page -> /user/page.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{DOCUMENT_ROOT}/user/$1.php -f
+RewriteRule ^user/([A-Za-z0-9_-]+)/?$ user/$1.php [L,QSA,NC]

@@ -48,6 +48,14 @@ try {
     $_SESSION['user_name'] = $user['full_name'] ?? 'User';
     $_SESSION['is_logged_in'] = true;
 
+    $tagStmt = $pdo->prepare("SELECT payment_method FROM invoices WHERE user_id = ? AND status = 'paid' AND description IN ('Registration Fee', 'Subscription Fee') ORDER BY id DESC LIMIT 1");
+    $tagStmt->execute([$user['id']]);
+    $paidInvoice = $tagStmt->fetch(PDO::FETCH_ASSOC);
+    $paymentMethod = strtolower($paidInvoice['payment_method'] ?? '');
+    $isGatewayUser = in_array($paymentMethod, ['cashfree', 'gateway'], true);
+    $_SESSION['user_payment_tag'] = $isGatewayUser ? 'Gateway User' : 'Standard User';
+    $_SESSION['hide_network_tab'] = $isGatewayUser;
+
     echo json_encode(['success' => true, 'message' => 'Login successful!']);
 
 } catch (Exception $e) {

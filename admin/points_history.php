@@ -2,6 +2,10 @@
 $page_title = 'Points History';
 $header_title = 'Points Transactions';
 require_once 'includes/header.php';
+
+echo '<div class="data-card"><div class="card-header"><h2>Transaction Tables Hidden</h2></div><div style="padding:24px; color: var(--text-muted);">Points transaction tables are currently hidden.</div></div>';
+require_once 'includes/footer.php';
+exit;
 ?>
 
 <div class="data-card">

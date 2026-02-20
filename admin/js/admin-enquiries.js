@@ -25,29 +25,40 @@ function renderEnquiries(enquiries) {
         return;
     }
 
-    tbody.innerHTML = enquiries.map(enq => `
+    tbody.innerHTML = enquiries.map(enq => {
+        const enquiryType = enq.enquiry_type || 'general';
+        const referenceId = enq.reference_id ?? '-';
+        const subject = enq.subject || 'No Subject';
+        const userName = enq.user_name || 'Unknown User';
+        const userEmail = enq.user_email || 'N/A';
+        const status = enq.status || 'pending';
+        const createdAt = enq.created_at ? new Date(enq.created_at).toLocaleDateString() : '-';
+        const message = String(enq.message || 'No message provided').replace(/'/g, "\\'");
+
+        return `
         <tr>
             <td>#${enq.id}</td>
-            <td class="fw-bold">${enq.user_name}<br><small class="text-muted fw-normal">${enq.user_email}</small></td>
-            <td><span class="text-capitalize">${enq.enquiry_type}</span> (#${enq.reference_id})</td>
-            <td>${enq.subject || 'No Subject'}</td>
+            <td class="fw-bold">${userName}<br><small class="text-muted fw-normal">${userEmail}</small></td>
+            <td><span class="text-capitalize">${enquiryType}</span> (#${referenceId})</td>
+            <td>${subject}</td>
             <td>
                 <select onchange="updateStatus(${enq.id}, this.value)" class="form-input py-1 px-2" style="font-size: 0.8rem; width: auto;">
-                    <option value="pending" ${enq.status === 'pending' ? 'selected' : ''}>Pending</option>
-                    <option value="in_progress" ${enq.status === 'in_progress' ? 'selected' : ''}>Processing</option>
-                    <option value="resolved" ${enq.status === 'resolved' ? 'selected' : ''}>Resolved</option>
-                    <option value="closed" ${enq.status === 'closed' ? 'selected' : ''}>Closed</option>
+                    <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+                    <option value="in_progress" ${status === 'in_progress' ? 'selected' : ''}>Processing</option>
+                    <option value="resolved" ${status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                    <option value="closed" ${status === 'closed' ? 'selected' : ''}>Closed</option>
                 </select>
             </td>
-            <td>${new Date(enq.created_at).toLocaleDateString()}</td>
+            <td>${createdAt}</td>
             <td>
-                <button class="btn-action btn-action-view" onclick="showToast.info('${enq.message.replace(/'/g, "\\'")}', 'Inquiry Message')" title="View Message">
+                <button class="btn-action btn-action-view" onclick="showToast.info('${message}', 'Inquiry Message')" title="View Message">
                     <i class="bi bi-chat-text"></i>
                 </button>
             </td>
 
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 async function updateStatus(id, status) {

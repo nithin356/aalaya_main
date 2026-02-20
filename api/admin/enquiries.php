@@ -19,7 +19,7 @@ try {
             $stmt = $pdo->query("
                 SELECT e.*, u.full_name as user_name, u.email as user_email
                 FROM enquiries e
-                JOIN users u ON e.user_id = u.id
+                LEFT JOIN users u ON e.user_id = u.id
                 ORDER BY e.created_at DESC
             ");
             $enquiries = $stmt->fetchAll();

@@ -92,8 +92,8 @@ try {
     $user_id = $pdo->lastInsertId();
 
     // DEFAULT STATUS: PENDING (Set account to 'hold' until payment is verified)
-    $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, created_at, updated_at) 
-               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, NOW(), NOW())";
+    $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, payment_method, created_at, updated_at) 
+               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
     $pdo->prepare($invSql)->execute([$user_id]);
 
     /* REMOVED AUTO-ACTIVATION logic - Admin must verify payment now

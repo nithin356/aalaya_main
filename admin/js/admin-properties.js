@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const propertyForm = document.getElementById('propertyForm');
     propertyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const removeField = document.getElementById('removeMediaIds');
+        if (removeField) {
+            removeField.value = Array.from(removedMediaIds).join(',');
+        }
         
         const formData = new FormData(this);
         const submitBtn = this.querySelector('button[type="submit"]');
@@ -60,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let currentProperties = [];
+let removedMediaIds = new Set();
 
 async function fetchProperties() {
     const tbody = document.getElementById('propertiesTableBody');
@@ -158,6 +164,9 @@ function editProperty(id) {
     if (!prop) return;
 
     openModal('Edit Property');
+    removedMediaIds.clear();
+    const removeField = document.getElementById('removeMediaIds');
+    if (removeField) removeField.value = '';
     
     const form = document.getElementById('propertyForm');
     form.property_id.value = prop.id;
@@ -182,18 +191,38 @@ function editProperty(id) {
     // Show thumbnail of images if possible
     if (prop.media && prop.media.length > 0) {
         document.getElementById('currentImages').innerHTML = prop.media.map(m => `
-            <div style="width: 50px; height: 40px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                ${m.file_type === 'image' ? `<img src="../${m.file_path}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i class="bi bi-play-circle" style="display: block; text-align: center; line-height: 40px;"></i>`}
+            <div data-media-id="${m.id}" style="position: relative; width: 60px; height: 45px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                ${m.file_type === 'image' ? `<img src="../${m.file_path}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i class="bi bi-play-circle" style="display: block; text-align: center; line-height: 45px;"></i>`}
+                <button type="button" onclick="markMediaForDeletion(${m.id}, this)" title="Remove" style="position:absolute; top:2px; right:2px; width:18px; height:18px; border:none; border-radius:50%; background:rgba(220,53,69,0.95); color:#fff; font-size:11px; line-height:18px; padding:0; cursor:pointer;">×</button>
             </div>
         `).join('');
     } else {
-        document.getElementById('currentImages').innerHTML = '';
+        document.getElementById('currentImages').innerHTML = '<small class="text-muted">No media uploaded</small>';
+    }
+}
+
+function markMediaForDeletion(mediaId, btn) {
+    removedMediaIds.add(Number(mediaId));
+    const item = btn.closest('[data-media-id]');
+    if (item) item.remove();
+
+    const removeField = document.getElementById('removeMediaIds');
+    if (removeField) removeField.value = Array.from(removedMediaIds).join(',');
+
+    const container = document.getElementById('currentImages');
+    if (container && container.children.length === 0) {
+        container.innerHTML = '<small class="text-muted">No media uploaded</small>';
     }
 }
 
 function openModal(title = 'Add New Property') {
     document.querySelector('#propertyModal h2').textContent = title;
     document.getElementById('propertyModal').style.display = 'flex';
+    if (title === 'Add New Property') {
+        removedMediaIds.clear();
+        const removeField = document.getElementById('removeMediaIds');
+        if (removeField) removeField.value = '';
+    }
 }
 
 function closeModal() {
@@ -201,6 +230,9 @@ function closeModal() {
     const form = document.getElementById('propertyForm');
     form.reset();
     form.property_id.value = '';
+    removedMediaIds.clear();
+    const removeField = document.getElementById('removeMediaIds');
+    if (removeField) removeField.value = '';
     document.getElementById('currentLegal').innerHTML = '';
     document.getElementById('currentEvaluation').innerHTML = '';
     document.getElementById('currentImages').innerHTML = '';

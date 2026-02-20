@@ -68,11 +68,17 @@ if (isset($_GET['ref'])) {
                 </div>
 
                 <!-- Password Input -->
-                <div class="mb-4">
-                    <div class="input-wrapper">
+                <div class="mb-2">
+                    <div class="input-wrapper password-field">
                         <input type="password" id="loginPassword" name="password" class="form-input" placeholder="Enter your password" required>
                         <i class="bi bi-lock"></i>
+                        <button type="button" class="password-toggle" data-toggle-password="loginPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
                     </div>
+                </div>
+                <div class="text-end mb-4">
+                    <a href="forgot-password.php" class="small text-white-50 text-decoration-none">Forgot Password?</a>
                 </div>
 
                 <!-- Login Button -->
@@ -96,6 +102,20 @@ if (isset($_GET['ref'])) {
     </div>
 
     <script src="../assets/js/toast.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-toggle-password]').forEach(button => {
+                button.addEventListener('click', function () {
+                    const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                    if (!input) return;
+                    const icon = this.querySelector('i');
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+                });
+            });
+        });
+    </script>
     <script src="js/user-auth.js"></script>
 </body>
 </html>

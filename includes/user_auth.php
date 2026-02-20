@@ -17,6 +17,18 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = getDB();
 $user_id = $_SESSION['user_id'];
 
+// Derive registration payment source tag for UI access control
+if (!isset($_SESSION['user_payment_tag']) || !isset($_SESSION['hide_network_tab'])) {
+    $tagStmt = $pdo->prepare("SELECT payment_method FROM invoices WHERE user_id = ? AND status = 'paid' AND description IN ('Registration Fee', 'Subscription Fee') ORDER BY id DESC LIMIT 1");
+    $tagStmt->execute([$user_id]);
+    $paidInvoice = $tagStmt->fetch();
+    $paymentMethod = strtolower($paidInvoice['payment_method'] ?? '');
+    $isGatewayUser = in_array($paymentMethod, ['cashfree', 'gateway'], true);
+
+    $_SESSION['user_payment_tag'] = $isGatewayUser ? 'Gateway User' : 'Standard User';
+    $_SESSION['hide_network_tab'] = $isGatewayUser;
+}
+
 // Check for mandatory pending payment or verification
 $stmt = $pdo->prepare("SELECT id, status FROM invoices WHERE user_id = ? AND status IN ('pending', 'pending_verification') AND (description = 'Registration Fee' OR description = 'Subscription Fee') ORDER BY created_at DESC LIMIT 1");
 $stmt->execute([$user_id]);

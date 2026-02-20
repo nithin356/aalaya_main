@@ -17,8 +17,8 @@ $pdo = getDB();
 $invoice_id = $_POST['invoice_id'] ?? 0;
 $utr_id = trim($_POST['utr_id'] ?? '');
 
-if (!$invoice_id || !$utr_id) {
-    echo json_encode(['success' => false, 'message' => 'Invoice ID and UTR ID are required.']);
+if (!$invoice_id) {
+    echo json_encode(['success' => false, 'message' => 'Invoice ID is required.']);
     exit;
 }
 
@@ -33,7 +33,7 @@ try {
         exit;
     }
 
-    // 2. Handle File Upload
+    // 2. Handle File Upload (Optional)
     $screenshot_path = null;
     if (isset($_FILES['payment_screenshot']) && $_FILES['payment_screenshot']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = '../../assets/uploads/payments/';
@@ -56,8 +56,6 @@ try {
         } else {
             throw new Exception("Failed to save uploaded image.");
         }
-    } else {
-        throw new Exception("Payment screenshot is required for verification.");
     }
 
     // 3. Update invoice with UTR, Screenshot and change status

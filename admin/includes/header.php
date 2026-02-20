@@ -47,12 +47,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
-                <a href="network.php" class="nav-link <?php echo $current_page == 'network.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-diagram-3"></i>
-                    <span>Network Hierarchy</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a href="properties.php" class="nav-link <?php echo $current_page == 'properties.php' ? 'active' : ''; ?>">
                     <i class="bi bi-building-fill"></i>
                     <span>Properties</span>
@@ -95,18 +89,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
-                <a href="shares.php" class="nav-link <?php echo $current_page == 'shares.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Share History</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="points_history.php" class="nav-link <?php echo $current_page == 'points_history.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-coin"></i>
-                    <span>Points History</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a href="payment_verifications.php" class="nav-link <?php echo $current_page == 'payment_verifications.php' ? 'active' : ''; ?>">
                     <i class="bi bi-shield-check"></i>
                     <span>Payment Verifications</span>
@@ -141,6 +123,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
             
             <div class="header-right">
+                <div class="admin-global-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="adminGlobalSearch" placeholder="Search current page..." autocomplete="off">
+                </div>
                 <div class="admin-profile">
                     <div class="profile-info">
                         <span class="admin-name"><?php echo htmlspecialchars($_SESSION['admin_full_name']); ?></span>

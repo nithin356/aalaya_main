@@ -79,7 +79,7 @@ try {
     $fee = ($fee === false) ? 0 : floatval($fee);
 
     if ($fee > 0) {
-        $invoiceSql = "INSERT INTO invoices (user_id, amount, description, status) VALUES (?, ?, ?, 'pending')";
+        $invoiceSql = "INSERT INTO invoices (user_id, amount, description, status, payment_method) VALUES (?, ?, ?, 'pending', 'cashfree')";
         $stmt = $pdo->prepare($invoiceSql);
         $stmt->execute([$user_id, $fee, "Registration Fee"]);
     }

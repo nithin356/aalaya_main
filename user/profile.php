@@ -18,6 +18,11 @@ $invStmt = $pdo->prepare("SELECT * FROM investments WHERE user_id = ? ORDER BY c
 $invStmt->execute([$user_id]);
 $investments = $invStmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch User Invoices
+$invoiceStmt = $pdo->prepare("SELECT id, amount, description, status, payment_method, created_at FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT 20");
+$invoiceStmt->execute([$user_id]);
+$invoices = $invoiceStmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Fetch Referral Network Count
 $netStmt = $pdo->prepare("SELECT COUNT(*) FROM referral_transactions WHERE user_id = ?");
 $netStmt->execute([$user_id]);
@@ -124,6 +129,20 @@ $total_shares = $user['total_shares'] ?? 0;
             color: white;
             filter: brightness(1.1);
         }
+
+        .profile-header-card .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+            opacity: 1;
+        }
+
+        .profile-header-card .form-control::-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .profile-header-card .form-control:-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
         @media (max-width: 991px) {
             .stat-box h3 { font-size: 1rem; }
             .stat-box .points-badge { font-size: 0.8rem; padding: 6px 12px; }
@@ -164,10 +183,17 @@ $total_shares = $user['total_shares'] ?? 0;
                         <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                             <span class="d-block text-white-50 small text-uppercase fw-bold">Email</span>
                             <div id="emailDisplay">
-                                <span class="d-block text-white fw-medium text-break"><?php echo htmlspecialchars($user['email']); ?></span>
-                                <button class="btn btn-sm btn-outline-light mt-2 rounded-pill px-3" onclick="showEmailEdit()">
-                                    <i class="bi bi-pencil me-1"></i> Edit
-                                </button>
+                                <?php if (!empty($user['email'])): ?>
+                                    <span class="d-block text-white fw-medium text-break"><?php echo htmlspecialchars($user['email']); ?></span>
+                                    <button class="btn btn-sm btn-outline-light mt-2 rounded-pill px-3" onclick="showEmailEdit()">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </button>
+                                <?php else: ?>
+                                    <span class="d-block text-warning small fw-bold mb-2"><i class="bi bi-exclamation-triangle me-1"></i> Email Not Added</span>
+                                    <button class="btn btn-sm btn-brand-pink rounded-pill px-3" onclick="showEmailEdit()">
+                                        <i class="bi bi-plus-lg me-1"></i> Add Email
+                                    </button>
+                                <?php endif; ?>
                             </div>
                             <div id="emailEditForm" style="display: none;">
                                 <input type="email" id="newEmail" class="form-control bg-dark border-secondary text-white mb-2" value="<?php echo htmlspecialchars($user['email']); ?>">
@@ -180,6 +206,24 @@ $total_shares = $user['total_shares'] ?? 0;
                         <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                             <span class="d-block text-white-50 small text-uppercase fw-bold">Phone</span>
                             <span class="d-block text-white fw-medium"><?php echo htmlspecialchars($user['phone']); ?></span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <span class="d-block text-white-50 small text-uppercase fw-bold">Password</span>
+                            <div id="passwordDisplay">
+                                <span class="d-block text-white fw-medium">••••••••</span>
+                                <button class="btn btn-sm btn-outline-light mt-2 rounded-pill px-3" onclick="showPasswordEdit()">
+                                    <i class="bi bi-shield-lock me-1"></i> Change Password
+                                </button>
+                            </div>
+                            <div id="passwordEditForm" style="display: none;">
+                                <input type="password" id="currentPassword" class="form-control bg-dark border-secondary text-white mb-2" placeholder="Current Password">
+                                <input type="password" id="newPassword" class="form-control bg-dark border-secondary text-white mb-2" placeholder="New Password (min 6 chars)">
+                                <input type="password" id="confirmPassword" class="form-control bg-dark border-secondary text-white mb-2" placeholder="Confirm New Password">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="savePassword()">Save</button>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelPasswordEdit()">Cancel</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -213,8 +257,8 @@ $total_shares = $user['total_shares'] ?? 0;
                                     <i class="bi bi-star-fill"></i> <?php echo number_format($total_points); ?> Points
                                 </span>
                             </div>
-                            <h3 class="fw-bold text-white h5 mb-1">Referral Rewards</h3>
-                            <p class="text-white-50 small mb-0">Earned when your referrals invest.</p>
+                            <h3 class="fw-bold text-white h5 mb-1">AALAYA POINTS</h3>
+                            <p class="text-white-50 small mb-0">Current points balance.</p>
                         </div>
                     </div>
                     <div class="col-md-4 text-center">
@@ -225,55 +269,67 @@ $total_shares = $user['total_shares'] ?? 0;
                     </div>
                 </div>
 
-                <!-- Recent Investment History -->
+                <!-- Payment Invoices -->
                 <div class="card mt-5 border-0 shadow-lg rounded-4 overflow-hidden" style="background: #141417;">
                     <div class="card-header p-4 border-bottom border-white border-opacity-10" style="background: rgba(255,255,255,0.02);">
-                        <h4 class="mb-0 fw-bold text-white">Recent Investment History</h4>
+                        <h4 class="mb-0 fw-bold text-white">Payment Invoices</h4>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table mb-0 align-middle">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4 py-3">Date</th>
-                                    <th>Amount</th>
-                                    <th>Points Earned</th>
-                                    <th class="pe-4 text-end">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (count($investments) > 0): ?>
-                                    <?php foreach ($investments as $inv): ?>
-                                    <tr>
-                                        <td class="ps-4 text-white-50 fw-bold">
-                                            <?php echo date('M d, Y', strtotime($inv['created_at'])); ?>
-                                        </td>
-                                        <td class="fw-bold">₹<?php echo number_format($inv['amount']); ?></td>
-                                        <td>
-                                            <?php if ($inv['points_earned'] > 0): ?>
-                                                <span class="badge bg-warning text-dark rounded-pill px-3">
-                                                    <i class="bi bi-star-fill"></i> +<?php echo $inv['points_earned']; ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="text-muted small">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="pe-4 text-end">
-                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
-                                                Completed
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="4" class="text-center py-5 text-white-50">
-                                            <i class="bi bi-wallet2 display-4 d-block mb-3 opacity-25"></i>
-                                            No investments recorded yet.
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                    <div class="p-4">
+                        <?php if (!empty($invoices)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-borderless align-middle mb-0">
+                                    <thead>
+                                        <tr class="text-white-50" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                                            <th>Invoice</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($invoices as $invoice): ?>
+                                            <?php
+                                                $status = strtolower((string)($invoice['status'] ?? 'pending'));
+                                                $badgeClass = 'bg-secondary';
+                                                if ($status === 'paid') {
+                                                    $badgeClass = 'bg-success';
+                                                } elseif ($status === 'pending') {
+                                                    $badgeClass = 'bg-warning text-dark';
+                                                } elseif ($status === 'pending_verification') {
+                                                    $badgeClass = 'bg-info text-dark';
+                                                } elseif ($status === 'cancelled') {
+                                                    $badgeClass = 'bg-danger';
+                                                }
+                                            ?>
+                                            <tr style="border-top: 1px solid rgba(255,255,255,0.06);">
+                                                <td class="fw-bold text-white">#INV-<?php echo (int)$invoice['id']; ?></td>
+                                                <td class="text-white-50"><?php echo htmlspecialchars($invoice['description'] ?? 'Payment'); ?></td>
+                                                <td class="fw-semibold text-white">₹<?php echo number_format((float)$invoice['amount'], 2); ?></td>
+                                                <td>
+                                                    <span class="badge rounded-pill <?php echo $badgeClass; ?>" style="font-size: 0.75rem;">
+                                                        <?php echo ucwords(str_replace('_', ' ', $status)); ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-white-50"><?php echo !empty($invoice['created_at']) ? date('d M Y', strtotime($invoice['created_at'])) : '-'; ?></td>
+                                                <td class="text-end">
+                                                    <?php if ($status === 'pending' || $status === 'pending_verification'): ?>
+                                                        <a href="payment.php?invoice_id=<?php echo (int)$invoice['id']; ?>" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                                                            <?php echo $status === 'pending_verification' ? 'View Status' : 'Pay Now'; ?>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <span class="text-white-50 small">-</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <p class="mb-0 text-white-50">No payment invoices found.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -300,6 +356,19 @@ $total_shares = $user['total_shares'] ?? 0;
             document.getElementById('emailEditForm').style.display = 'none';
         }
 
+        function showPasswordEdit() {
+            document.getElementById('passwordDisplay').style.display = 'none';
+            document.getElementById('passwordEditForm').style.display = 'block';
+        }
+
+        function cancelPasswordEdit() {
+            document.getElementById('passwordDisplay').style.display = 'block';
+            document.getElementById('passwordEditForm').style.display = 'none';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
         async function saveEmail() {
             const newEmail = document.getElementById('newEmail').value.trim();
             if (!newEmail) {
@@ -323,6 +392,46 @@ $total_shares = $user['total_shares'] ?? 0;
                 }
             } catch (err) {
                 showToast.error('Failed to update email.');
+            }
+        }
+
+        async function savePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showToast.error('Please fill all password fields.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showToast.error('New password must be at least 6 characters.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast.error('New password and confirm password do not match.');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('current_password', currentPassword);
+                formData.append('new_password', newPassword);
+                formData.append('confirm_password', confirmPassword);
+
+                const response = await fetch('../api/user/change_password.php', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast.success(result.message);
+                    cancelPasswordEdit();
+                } else {
+                    showToast.error(result.message || 'Failed to change password.');
+                }
+            } catch (err) {
+                showToast.error('Failed to change password.');
             }
         }
     </script>

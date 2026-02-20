@@ -235,6 +235,44 @@ body:not(.admin-layout) {
   margin-bottom: 32px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-global-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-width: 260px;
+}
+
+.admin-global-search i {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+}
+
+.admin-global-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 9px 12px 9px 34px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.admin-global-search input::placeholder {
+  color: var(--text-muted);
+}
+
 .header-left .welcome-text h1 {
   font-size: 1.85rem;
   font-weight: 700;
@@ -704,6 +742,10 @@ tr:hover td {
     gap: 8px;
   }
 
+  .admin-global-search {
+    display: none;
+  }
+
   .admin-name {
     display: none; /* Hide name to save space */
   }
@@ -945,6 +987,31 @@ tr:hover td {
   color: #0f172a;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-card .input-wrapper.password-field .form-input {
+  padding-right: 44px;
+}
+
+.auth-card .password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.auth-card .password-toggle:hover {
+  color: #0f172a;
 }
 
 .auth-card .form-input:focus {

@@ -19,7 +19,7 @@ $pdo = getDB();
 
 if ($invoice_id) {
     // Mark Paid
-    $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_id=?, updated_at=NOW() WHERE id=?");
+    $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_id=?, payment_method='cashfree', updated_at=NOW() WHERE id=?");
     $stmt->execute([$order_id, $invoice_id]);
 
     // Reward Logic: If Registration Fee, add to total_points
