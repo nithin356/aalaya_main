@@ -38,9 +38,21 @@ function renderUsers(users) {
             <td class="fw-bold text-primary">${user.total_points ? parseFloat(user.total_points).toLocaleString() : '0'}</td>
             <td class="fw-bold text-success text-center">${user.total_shares || 0}</td>
             <td>
-                <span class="status-badge ${user.is_banned == 1 ? 'status-pending' : 'status-resolved'}">
-                    ${user.is_banned == 1 ? 'Banned' : 'Active'}
-                </span>
+                ${(() => {
+                    if (user.is_banned == 1) {
+                        return `<span class="status-badge status-danger">Banned</span>`;
+                    }
+                    switch (user.payment_status) {
+                        case 'paid':
+                            return `<span class="status-badge status-resolved">Active</span>`;
+                        case 'pending_verification':
+                            return `<span class="status-badge status-pending">Pending Verif.</span>`;
+                        case 'pending':
+                            return `<span class="status-badge status-muted">Unpaid</span>`;
+                        default:
+                            return `<span class="status-badge status-muted">Inactive</span>`;
+                    }
+                })()}
             </td>
             <td>${new Date(user.created_at).toLocaleDateString()}</td>
             <td>

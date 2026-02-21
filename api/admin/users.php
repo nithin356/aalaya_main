@@ -16,8 +16,28 @@ $pdo = getDB();
 try {
     switch ($method) {
         case 'GET':
-            // List all users (not soft-deleted)
-            $stmt = $pdo->query("SELECT id, full_name, email, phone, referral_code, aadhaar_number, pan_number, total_points, total_shares, is_banned, created_at FROM users WHERE is_deleted = 0 ORDER BY created_at DESC");
+            // List all users with their latest registration/subscription payment status
+            $sql = "SELECT 
+                        u.id, 
+                        u.full_name, 
+                        u.email, 
+                        u.phone, 
+                        u.referral_code, 
+                        u.aadhaar_number, 
+                        u.pan_number, 
+                        u.total_points, 
+                        u.total_shares, 
+                        u.is_banned, 
+                        u.created_at,
+                        (SELECT status FROM invoices 
+                         WHERE user_id = u.id 
+                         AND description IN ('Registration Fee', 'Subscription Fee') 
+                         ORDER BY id DESC LIMIT 1) as payment_status
+                    FROM users u 
+                    WHERE u.is_deleted = 0 
+                    ORDER BY u.created_at DESC";
+            
+            $stmt = $pdo->query($sql);
             $users = $stmt->fetchAll();
             echo json_encode(['success' => true, 'data' => $users]);
             break;

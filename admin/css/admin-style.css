@@ -600,6 +600,18 @@ tr:hover td {
   background: #fef3c7;
   color: #b45309;
 }
+.status-danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+.status-info {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.status-muted {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 /* --- Modal Overhaul --- */
 .modal-overlay {
@@ -836,37 +848,40 @@ tr:hover td {
 
 /* Fix Modal Z-Index to go over Fixed Header */
 .modal-backdrop {
-    z-index: 2050 !important;
+  z-index: 2050 !important;
 }
 .modal {
-    z-index: 2100 !important;
+  z-index: 2100 !important;
 }
 
 /* Ensure Scrollable Modal Content */
 .modal-dialog-scrollable .modal-content {
-    max-height: calc(100vh - 40px);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .modal-dialog-scrollable .modal-body {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    flex: 1 1 auto;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
 }
 
 /* Mobile specific safety for modal */
 @media (max-width: 768px) {
-    .modal-dialog-scrollable .modal-content {
-        max-height: calc(100svh - 60px); /* Use svh for mobile browsers */
-        margin-bottom: 20px;
-    }
-    .modal-footer {
-        padding-bottom: max(24px, env(safe-area-inset-bottom)); /* More breathing room */
-        min-height: 80px;
-        flex-shrink: 0; /* Prevent button area from collapsing */
-        background: white; /* Ensure bg covers scrolling content */
-    }
+  .modal-dialog-scrollable .modal-content {
+    max-height: calc(100svh - 60px); /* Use svh for mobile browsers */
+    margin-bottom: 20px;
+  }
+  .modal-footer {
+    padding-bottom: max(
+      24px,
+      env(safe-area-inset-bottom)
+    ); /* More breathing room */
+    min-height: 80px;
+    flex-shrink: 0; /* Prevent button area from collapsing */
+    background: white; /* Ensure bg covers scrolling content */
+  }
 }
 
 /* --- Auth Pages (Login) --- */
