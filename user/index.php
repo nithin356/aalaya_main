@@ -22,6 +22,8 @@ if (isset($_GET['ref'])) {
     <link rel="stylesheet" href="css/user-style.css">
     <link rel="stylesheet" href="../assets/css/toast.css">
     <link rel="manifest" href="../manifest.json">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
 </head>
 <body>
 

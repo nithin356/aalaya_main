@@ -21,6 +21,8 @@ $show_payment_block = !empty($pending_registration_invoice);
     <link rel="stylesheet" href="css/landing.css">
     <link rel="stylesheet" href="css/landing_home.css">
     <link rel="stylesheet" href="../assets/css/toast.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
 </head>
 <body>
 

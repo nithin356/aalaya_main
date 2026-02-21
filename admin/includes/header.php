@@ -23,6 +23,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/admin-style.css">
     <link rel="stylesheet" href="../assets/css/toast.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
 </head>
 <body class="admin-layout">
 

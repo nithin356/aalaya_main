@@ -5,9 +5,7 @@ require_once 'includes/header.php';
 require_once '../includes/db.php';
 $pdo = getDB();
 
-echo '<div class="data-card"><div class="card-header"><h2>Referral Tables Hidden</h2></div><div style="padding:24px; color: var(--text-muted);">Referral tables are currently hidden.</div></div>';
-require_once 'includes/footer.php';
-exit;
+
 
 // Fetch all users with referral info
 $stmt = $pdo->query("SELECT id, full_name, referral_code, referred_by, created_at FROM users WHERE is_deleted = 0 ORDER BY created_at ASC");

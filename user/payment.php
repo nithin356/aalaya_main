@@ -31,6 +31,8 @@ $sdk_mode = ($cashfree_mode === 'prod' || $cashfree_mode === 'production') ? 'pr
     <title>Complete Payment | Aalaya</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
     <style>
         .payment-card {
             max-width: 390px;
