@@ -18,27 +18,12 @@ $order_id = $_GET['order_id'] ?? '';
 $pdo = getDB();
 
 if ($invoice_id) {
-    // Mark Paid
-    $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_id=?, payment_method='cashfree', updated_at=NOW() WHERE id=?");
-    $stmt->execute([$order_id, $invoice_id]);
+    // Mark as Pending Verification (Admin must still approve)
+    $stmt = $pdo->prepare("UPDATE invoices SET status='pending_verification', payment_id=?, payment_method='cashfree', manual_utr_id=?, updated_at=NOW() WHERE id=?");
+    $stmt->execute([$order_id, $order_id, $invoice_id]);
 
-    // Reward Logic: If Registration Fee, add to total_points
-    $stmt = $pdo->prepare("SELECT user_id, amount, description FROM invoices WHERE id = ?");
-    $stmt->execute([$invoice_id]);
-    $invoice = $stmt->fetch();
-
-    if ($invoice && ($invoice['description'] === 'Registration Fee' || $invoice['description'] === 'Subscription Fee')) {
-        $user_id = $invoice['user_id'];
-        $amount = $invoice['amount'];
-        
-        // Add to points
-        $stmt = $pdo->prepare("UPDATE users SET total_points = total_points + ? WHERE id = ?");
-        $stmt->execute([$amount, $user_id]);
-        
-        // Log transaction (reusing referral_transactions for points tracking)
-        $stmt = $pdo->prepare("INSERT INTO referral_transactions (user_id, referred_user_id, level, points_earned, percentage, transaction_type) VALUES (?, ?, 0, ?, 100, 'subscription_reward')");
-        $stmt->execute([$user_id, $user_id, $amount]);
-    }
+    // Reward Logic DEFERRED to Admin Approval (verify_manual_payment.php)
+    // We only log that gateway payment was received if needed, but for now we follow the same verification queue.
 }
 
 // Redirect to Dashboard

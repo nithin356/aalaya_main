@@ -37,9 +37,10 @@ try {
     }
 
     if ($action === 'approve') {
-        // 2. Mark Paid
-        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_method='manual', updated_at=NOW() WHERE id=?");
-        $stmt->execute([$invoice_id]);
+        // 2. Mark Paid - Preserve existing payment_method if already set (e.g. 'cashfree')
+        $payment_method = $invoice['payment_method'] ?? 'manual';
+        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_method=?, updated_at=NOW() WHERE id=?");
+        $stmt->execute([$payment_method, $invoice_id]);
 
         // 3. Reward Logic (Based on payment_callback.php)
         if ($invoice['description'] === 'Registration Fee' || $invoice['description'] === 'Subscription Fee') {

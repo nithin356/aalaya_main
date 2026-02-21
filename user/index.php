@@ -90,9 +90,9 @@ if (isset($_GET['ref'])) {
             <!-- Error Message Display Area -->
             <div id="loginError" class="error-alert" style="display:none; color: #ef4444; font-size: 0.85rem; margin-top: 16px; margin-bottom: 16px;"></div>
 
-            <p class="auth-footer">
+            <!-- <p class="auth-footer">
                 Don't have an account? <a href="register.php">Register</a>
-            </p>
+            </p> -->
             <p class="auth-footer" style="margin-top: 10px; font-size: 0.8rem;">
                 <a href="../privacy_policy.php" target="_blank">Privacy Policy</a> | 
                 <a href="../terms_and_conditions.php" target="_blank">Terms & Conditions</a> | 

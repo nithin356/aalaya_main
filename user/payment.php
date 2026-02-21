@@ -13,10 +13,9 @@ if (!$invoice) {
     exit;
 }
 
-$is_gateway_registration_flow = !empty($_SESSION['hide_network_tab'])
-    || strtolower($_SESSION['user_payment_tag'] ?? '') === 'gateway user';
-$show_gateway_payment = $is_gateway_registration_flow;
-$show_manual_payment = !$is_gateway_registration_flow;
+$is_gateway_registration_flow = true;
+$show_gateway_payment = true;
+$show_manual_payment = false;
 
 // Load Cashfree Mode
 $config = parse_ini_file('../config/config.ini', true);
@@ -98,44 +97,6 @@ $sdk_mode = ($cashfree_mode === 'prod' || $cashfree_mode === 'production') ? 'pr
                         <i class="bi bi-credit-card-2-front me-2"></i> Pay via Secure Gateway
                     </button>
                 </div>
-            <?php endif; ?>
-
-            <?php if ($show_manual_payment): ?>
-                <?php if ($show_gateway_payment): ?>
-                    <div class="text-center text-muted small mb-3">or submit manual details</div>
-                <?php endif; ?>
-
-                <div class="text-center mb-4">
-                    <img src="../assets/images/qr_payment.png" alt="Payment QR Code" class="img-fluid rounded border p-2 mb-3" style="max-width: 250px; background: white;">
-                    <div class="p-2 bg-light rounded border border-dashed mb-3">
-                        <small class="text-muted d-block uppercase ls-1 mb-1">UPI ID</small>
-                        <strong class="text-dark fs-5">aalaya@upi</strong>
-                    </div>
-                </div>
-
-                <form id="manualPaymentForm" enctype="multipart/form-data">
-                    <input type="hidden" name="invoice_id" value="<?php echo $invoice_id; ?>">
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold ls-1 small text-uppercase">1. Enter Transaction ID (UTR) (Optional)</label>
-                        <input type="text" name="utr_id" class="form-control form-control-lg bg-light" placeholder="12-digit UTR Number" minlength="6">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold ls-1 small text-uppercase">2. Upload Payment Screenshot (Optional)</label>
-                        <div class="upload-wrapper position-relative">
-                            <input type="file" name="payment_screenshot" id="screenshotInput" class="form-control" accept="image/*">
-                            <div id="previewContainer" class="mt-2 text-center" style="display:none;">
-                                <img id="screenshotPreview" src="#" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
-                            </div>
-                        </div>
-                        <div class="form-text mt-1" style="font-size: 0.75rem;">Upload screenshot if available. You can submit without it.</div>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-3 fw-bold fs-5 shadow-sm">
-                        <i class="bi bi-shield-check me-2"></i> Submit for Verification
-                    </button>
-                </form>
             <?php endif; ?>
         </div>
         
