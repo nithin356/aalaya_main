@@ -84,8 +84,8 @@ function renderCharts(analytics) {
 }
 
 function updateRecentEnquiries(enquiries) {
-    const tbody = document.querySelector('table tbody');
-    if (enquiries.length === 0) {
+    const tbody = document.getElementById('dashboardEnquiriesBody');
+    if (!enquiries || enquiries.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
@@ -98,24 +98,40 @@ function updateRecentEnquiries(enquiries) {
     }
 
     tbody.innerHTML = enquiries.map(enq => {
-        const statusClass = enq.status === 'pending' ? 'status-pending' : 'status-resolved';
+        const statusClass = enq.status === 'pending' ? 'status-pending' : enq.status === 'in_progress' ? 'status-info' : 'status-resolved';
+        const statusLabel = enq.status === 'in_progress' ? 'Processing' : enq.status.charAt(0).toUpperCase() + enq.status.slice(1);
         return `
             <tr>
                 <td>#${enq.id}</td>
                 <td>${enq.user_name}</td>
                 <td><span class="text-capitalize">${enq.enquiry_type}</span></td>
-                <td>-</td> <!-- Message preview could go here -->
-                <td><span class="status-badge ${statusClass}">${enq.status}</span></td>
-                <td>${new Date(enq.created_at).toLocaleDateString()}</td>
+                <td>${enq.subject || '-'}</td>
+                <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                <td data-order="${enq.created_at}">${new Date(enq.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
                 <td>
                     <button class="btn-action btn-action-view" onclick="viewEnquiry(${enq.id})" title="View Details">
                         <i class="bi bi-eye"></i>
                     </button>
                 </td>
-
             </tr>
         `;
     }).join('');
+
+    // Initialize DataTable
+    if ($.fn.dataTable.isDataTable('#dashboardEnquiriesTable')) {
+        $('#dashboardEnquiriesTable').DataTable().destroy();
+    }
+    $('#dashboardEnquiriesTable').DataTable({
+        ordering: true,
+        responsive: true,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25], [5, 10, 25]],
+        order: [[5, 'desc']],
+        language: {
+            emptyTable: '<div class="text-center py-4"><i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>No enquiries found</div>',
+            zeroRecords: '<div class="text-center py-4"><i class="bi bi-search fs-2 d-block mb-2 text-muted"></i>No matching records</div>'
+        }
+    });
 }
 
 function viewEnquiry(id) {

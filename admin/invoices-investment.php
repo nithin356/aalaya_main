@@ -13,7 +13,7 @@ require_once 'includes/header.php';
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stats-grid mb-4">
+    <div class="stats-grid mb-0">
         <div class="stat-card">
             <div class="stat-icon icon-green">
                 <i class="bi bi-currency-rupee"></i>
@@ -115,7 +115,7 @@ async function loadInvoices() {
                             }
                         </td>
                         <td class="small text-muted">${inv.admin_name || 'System'}</td>
-                        <td class="text-muted">${new Date(inv.created_at).toLocaleDateString()}</td>
+                        <td data-order="${inv.created_at}" class="text-muted">${new Date(inv.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
                         <td>
                             <a href="print-invoice.php?type=investment&id=${inv.id}" target="_blank" class="btn-action btn-action-view" title="Print Invoice">
                                 <i class="bi bi-printer"></i>

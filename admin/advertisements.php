@@ -6,14 +6,54 @@ require_once 'includes/header.php';
 
 <div class="data-card">
     <div class="card-header">
-        <h2>Active Advertisements</h2>
+        <h2>Campaign Management</h2>
         <button class="btn-primary" onclick="openModal()">
             <i class="bi bi-plus-lg"></i> Launch New Campaign
         </button>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-0">
+        <div class="stat-card">
+            <div class="stat-icon icon-purple">
+                <i class="bi bi-megaphone"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Campaigns</span>
+                <span class="value" id="statTotalAds">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-broadcast"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Active</span>
+                <span class="value" id="statActiveAds">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Expired</span>
+                <span class="value" id="statExpiredAds">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-image"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Banner Ads</span>
+                <span class="value" id="statBannerAds">0</span>
+            </div>
+        </div>
+    </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="adsTable" class="table table-hover" style="width:100%;">
             <thead>
                 <tr>
                     <th>ID</th>

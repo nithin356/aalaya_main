@@ -13,7 +13,7 @@ require_once 'includes/header.php';
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stats-grid mb-4">
+    <div class="stats-grid mb-0">
         <div class="stat-card">
             <div class="stat-icon icon-blue">
                 <i class="bi bi-receipt"></i>
@@ -41,6 +41,16 @@ require_once 'includes/header.php';
             <div class="stat-info">
                 <span class="label">Pending</span>
                 <span class="value" id="statPending">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Awaiting Verification</span>
+                <span class="value" id="statPendingVerification">0</span>
             </div>
         </div>
 
@@ -91,12 +101,29 @@ async function loadInvoices() {
                 document.getElementById('statTotalInvoices').textContent = result.stats.total_count || 0;
                 document.getElementById('statPaid').textContent = result.stats.paid_count || 0;
                 document.getElementById('statPending').textContent = result.stats.pending_count || 0;
+                const pvEl = document.getElementById('statPendingVerification');
+                if (pvEl) pvEl.textContent = result.stats.pending_verification_count || 0;
                 const totalRevenue = result.stats.total_paid_amount ? parseFloat(result.stats.total_paid_amount).toLocaleString('en-IN', {maximumFractionDigits: 0}) : 0;
                 document.getElementById('statTotalRevenue').textContent = '₹' + totalRevenue;
             }
 
             if (result.data && result.data.length > 0) {
-                tbody.innerHTML = result.data.map(inv => `
+                tbody.innerHTML = result.data.map(inv => {
+                    let statusBadge = '';
+                    switch(inv.status) {
+                        case 'paid':
+                            statusBadge = '<span class="status-badge status-resolved">Paid</span>';
+                            break;
+                        case 'pending_verification':
+                            statusBadge = '<span class="status-badge status-info">Verification</span>';
+                            break;
+                        case 'cancelled':
+                            statusBadge = '<span class="status-badge status-danger">Cancelled</span>';
+                            break;
+                        default:
+                            statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                    }
+                    return `
                     <tr>
                         <td class="fw-bold">#INV-${inv.id}</td>
                         <td>
@@ -106,20 +133,15 @@ async function loadInvoices() {
                             </div>
                         </td>
                         <td class="fw-bold text-primary">₹${parseFloat(inv.amount).toLocaleString()}</td>
-                        <td>
-                            ${inv.status === 'paid' 
-                                ? '<span class="status-badge status-resolved">Paid</span>' 
-                                : '<span class="status-badge status-pending">Pending</span>'
-                            }
-                        </td>
-                        <td class="text-muted">${new Date(inv.created_at).toLocaleDateString()}</td>
+                        <td>${statusBadge}</td>
+                        <td data-order="${inv.created_at}" class="text-muted">${new Date(inv.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
                         <td>
                             <a href="print-invoice.php?type=registration&id=${inv.id}" target="_blank" class="btn-action btn-action-view" title="Print Invoice">
                                 <i class="bi bi-printer"></i>
                             </a>
                         </td>
                     </tr>
-                `).join('');
+                `}).join('');
                 
                 // Initialize or reinitialize DataTable
                 if ($.fn.dataTable.isDataTable('#invoicesTable')) {

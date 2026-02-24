@@ -68,30 +68,30 @@ require_once 'includes/header.php';
 </div>
 
 <!-- Charts Section -->
-<div class="row mt-4">
+<div class="row mt-4 g-4">
     <div class="col-lg-7">
         <div class="data-card p-4">
-            <h2 class="mb-4">Income Trend (Last 30 Days)</h2>
+            <h2 class="mb-4" style="font-size:1.1rem; font-weight:700;">Income Trend (Last 30 Days)</h2>
             <canvas id="incomeChart" style="max-height: 300px;"></canvas>
         </div>
     </div>
     <div class="col-lg-5">
         <div class="data-card p-4">
-            <h2 class="mb-4">User Growth</h2>
+            <h2 class="mb-4" style="font-size:1.1rem; font-weight:700;">User Growth</h2>
             <canvas id="growthChart" style="max-height: 300px;"></canvas>
         </div>
     </div>
 </div>
 
 <!-- Recent Activity Table -->
-<div class="data-card">
+<div class="data-card mt-4">
     <div class="card-header">
         <h2>Recent Enquiries</h2>
-        <a href="enquiries.php" class="btn-link" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.875rem;">View All</a>
+        <a href="enquiries.php" class="btn-link" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.875rem;">View All <i class="bi bi-arrow-right"></i></a>
     </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="dashboardEnquiriesTable" class="table table-hover" style="width:100%;">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -103,11 +103,11 @@ require_once 'includes/header.php';
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="dashboardEnquiriesBody">
                 <tr>
                     <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
                         <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
-                        No recent enquiries found
+                        Loading...
                     </td>
                 </tr>
             </tbody>

@@ -70,33 +70,6 @@ function processRewardsForUser($pdo, $userId, $points, $shareThreshold, $reason 
 
 try {
     if ($method === 'GET') {
-        // Verify investments table exists
-        $checkTable = $pdo->query("SHOW TABLES LIKE 'investments'");
-        if ($checkTable->rowCount() === 0) {
-            // Table doesn't exist, create it
-            $createTableSql = "CREATE TABLE IF NOT EXISTS investments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                amount DECIMAL(15, 2) NOT NULL,
-                points_earned INT DEFAULT 0,
-                admin_id INT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                INDEX (user_id),
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
-            )";
-            $pdo->exec($createTableSql);
-        }
-
-        // Verify required columns exist in users table
-        $requiredCols = ['total_points', 'total_shares', 'total_investment_amount'];
-        foreach ($requiredCols as $col) {
-            $checkCol = $pdo->query("SHOW COLUMNS FROM users LIKE '$col'");
-            if ($checkCol->rowCount() === 0) {
-                $pdo->exec("ALTER TABLE users ADD COLUMN $col DECIMAL(15,2) DEFAULT 0");
-            }
-        }
-        
         // List Investments
         $sql = "SELECT i.*, u.full_name, u.phone, 
                 (SELECT full_name FROM admin_users WHERE id = i.admin_id) as admin_name
@@ -105,51 +78,11 @@ try {
                 ORDER BY i.created_at DESC";
         $stmt = $pdo->query($sql);
         $investments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Get statistics
-        $statsSql = "SELECT 
-                COUNT(*) as total_count,
-                SUM(amount) as total_amount,
-                SUM(points_earned) as total_points_earned,
-                COUNT(DISTINCT user_id) as total_investors
-                FROM investments";
-        $statsStmt = $pdo->query($statsSql);
-        $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
         
         ob_clean();
-        echo json_encode(['success' => true, 'data' => $investments, 'stats' => $stats]);
+        echo json_encode(['success' => true, 'data' => $investments]);
 
     } elseif ($method === 'POST') {
-        // Verify required tables exist
-        $checkInvTable = $pdo->query("SHOW TABLES LIKE 'investments'");
-        if ($checkInvTable->rowCount() === 0) {
-            $createTableSql = "CREATE TABLE IF NOT EXISTS investments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                amount DECIMAL(15, 2) NOT NULL,
-                points_earned INT DEFAULT 0,
-                admin_id INT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                INDEX (user_id),
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
-            )";
-            $pdo->exec($createTableSql);
-        }
-        
-        $checkShareTable = $pdo->query("SHOW TABLES LIKE 'share_transactions'");
-        if ($checkShareTable->rowCount() === 0) {
-            $createShareTableSql = "CREATE TABLE IF NOT EXISTS share_transactions (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                user_id INT NOT NULL,
-                shares_added INT NOT NULL,
-                reason VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )";
-            $pdo->exec($createShareTableSql);
-        }
-
         // Add Investment
         if (empty($_POST['user_id']) || empty($_POST['amount'])) {
             throw new Exception('User and Amount are required.');

@@ -79,6 +79,20 @@ function renderAds(ads) {
         return;
     }
 
+    // Calculate stats
+    const now = new Date();
+    let active = 0, expired = 0, banner = 0;
+    ads.forEach(ad => {
+        if (ad.end_date && new Date(ad.end_date) < now) expired++;
+        else active++;
+        if (ad.ad_type === 'banner') banner++;
+    });
+    const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+    el('statTotalAds', ads.length);
+    el('statActiveAds', active);
+    el('statExpiredAds', expired);
+    el('statBannerAds', banner);
+
     tbody.innerHTML = ads.map(ad => `
         <tr>
             <td>#${ad.id}</td>
@@ -96,7 +110,7 @@ function renderAds(ads) {
             <td class="fw-bold">${ad.title}</td>
             <td>${ad.company_name || 'N/A'}</td>
             <td><span class="text-capitalize">${ad.ad_type}</span></td>
-            <td>${ad.end_date || 'Ongoing'}</td>
+            <td data-order="${ad.end_date || '9999-12-31'}">${ad.end_date ? new Date(ad.end_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '<span class="text-muted">Ongoing</span>'}</td>
             <td>
                 <div class="d-flex gap-2">
                     <button class="btn-action btn-action-view" onclick="editAd(${ad.id})" title="Edit Campaign">
@@ -109,6 +123,25 @@ function renderAds(ads) {
             </td>
         </tr>
     `).join('');
+
+    // Initialize DataTable
+    if ($.fn.dataTable.isDataTable('#adsTable')) {
+        $('#adsTable').DataTable().destroy();
+    }
+    $('#adsTable').DataTable({
+        ordering: true,
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        order: [[0, 'desc']],
+        language: {
+            emptyTable: '<div class="text-center py-4"><i class="bi bi-megaphone fs-2 d-block mb-2 text-muted"></i>No campaigns found</div>',
+            zeroRecords: '<div class="text-center py-4"><i class="bi bi-search fs-2 d-block mb-2 text-muted"></i>No matching campaigns</div>'
+        },
+        columnDefs: [
+            { orderable: false, targets: [1, 6] }
+        ]
+    });
 }
 
 async function editAd(id) {

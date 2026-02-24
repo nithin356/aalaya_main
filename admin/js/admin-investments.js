@@ -90,7 +90,7 @@ async function loadInvestments() {
                                 : `<span class="text-muted">-</span>`
                             }
                         </td>
-                        <td class="text-muted">${new Date(item.created_at).toLocaleDateString()}</td>
+                        <td data-order="${item.created_at}" class="text-muted">${new Date(item.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
                         <td class="small text-muted">${item.admin_name || 'System'}</td>
                     </tr>
                 `).join('');

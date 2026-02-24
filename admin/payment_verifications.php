@@ -6,14 +6,62 @@ require_once 'includes/header.php';
 
 <div class="data-card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Pending Verifications</h2>
-        <button class="btn-primary" onclick="loadVerifications()">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
+        <h2>Payment Verifications</h2>
+        <div class="d-flex gap-2 align-items-center">
+            <select id="verificationFilter" class="form-input py-1 px-2" style="font-size: 0.85rem; width:auto; min-width:150px;" onchange="loadVerifications()">
+                <option value="pending_verification">Pending Review</option>
+                <option value="all">All Records</option>
+                <option value="paid">Approved</option>
+                <option value="pending">Rejected</option>
+            </select>
+            <button class="btn-primary" onclick="loadVerifications()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-0">
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Submissions</span>
+                <span class="value" id="statTotalVerif">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(249, 115, 22, 0.1); color: #f97316;">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Pending Review</span>
+                <span class="value" id="statPendingVerif">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Approved</span>
+                <span class="value" id="statApprovedVerif">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Rejected</span>
+                <span class="value" id="statRejectedVerif">0</span>
+            </div>
+        </div>
     </div>
 
     <div class="table-responsive">
-        <table>
+        <table id="verificationsTable" class="table table-hover" style="width:100%;">
             <thead>
                 <tr>
                     <th>Invoice ID</th>
@@ -21,6 +69,7 @@ require_once 'includes/header.php';
                     <th>Amount</th>
                     <th>UTR ID</th>
                     <th>Screenshot</th>
+                    <th>Status</th>
                     <th>Submitted At</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
@@ -91,39 +140,87 @@ let currentAction = null;
 
 async function loadVerifications() {
     const tbody = document.getElementById('verificationsTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading pending verifications...</p></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading verifications...</p></td></tr>';
+
+    // Destroy DataTable if it exists
+    if ($.fn.dataTable.isDataTable('#verificationsTable')) {
+        $('#verificationsTable').DataTable().destroy();
+    }
 
     try {
         const response = await fetch('../api/admin/get_pending_verifications.php');
         const result = await response.json();
 
         if (result.success) {
-            renderVerifications(result.data);
+            // Update stats
+            const data = result.data || [];
+            let pending = 0, approved = 0, rejected = 0;
+            if (result.stats) {
+                pending = result.stats.pending || 0;
+                approved = result.stats.approved || 0;
+                rejected = result.stats.rejected || 0;
+            } else {
+                pending = data.length; // fallback
+            }
+            const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+            el('statTotalVerif', pending + approved + rejected);
+            el('statPendingVerif', pending);
+            el('statApprovedVerif', approved);
+            el('statRejectedVerif', rejected);
+
+            renderVerifications(data);
         } else {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger">${result.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">${result.message}</td></tr>`;
         }
     } catch (error) {
         console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-danger">Server Error. Please try again later.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-danger">Server Error. Please try again later.</td></tr>';
     }
 }
 
 function renderVerifications(data) {
     const tbody = document.getElementById('verificationsTableBody');
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><i class="bi bi-check-circle text-success fs-1"></i><p class="mt-2 mb-0">No pending verifications found.</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><i class="bi bi-check-circle text-success fs-1"></i><p class="mt-2 mb-0">No pending verifications found.</p></td></tr>';
         return;
     }
 
-    tbody.innerHTML = data.map(item => `
+    tbody.innerHTML = data.map(item => {
+        let statusBadge = '';
+        let actionBtns = '';
+        const status = item.status || 'pending_verification';
+        
+        switch(status) {
+            case 'paid':
+                statusBadge = '<span class="status-badge status-resolved">Approved</span>';
+                actionBtns = '<span class="text-muted small">Completed</span>';
+                break;
+            case 'pending':
+                statusBadge = '<span class="status-badge status-danger">Rejected</span>';
+                actionBtns = '<span class="text-muted small">Rejected</span>';
+                break;
+            default:
+                statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                actionBtns = `
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn-action btn-action-view" onclick="openConfirmModal(${item.id}, 'approve', '${(item.full_name||'').replace(/'/g,"\\'")}', '${item.amount}', '${item.manual_utr_id || ''}', '${item.manual_payment_screenshot || ''}')" title="Approve Payment">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button class="btn-action btn-action-danger" onclick="openConfirmModal(${item.id}, 'reject', '${(item.full_name||'').replace(/'/g,"\\'")}', '${item.amount}', '${item.manual_utr_id || ''}', '${item.manual_payment_screenshot || ''}')" title="Reject Payment">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>`;
+        }
+
+        return `
         <tr>
             <td class="fw-bold">#${item.id}</td>
             <td>
                 <div class="fw-bold">${item.full_name}</div>
-                <div class="small text-muted">${item.phone}</div>
+                <div class="small text-muted">${item.phone || ''}</div>
             </td>
             <td class="fw-bold text-primary">₹${parseFloat(item.amount).toLocaleString()}</td>
-            <td><code style="background: #f0f7ff; color: #0066cc; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.manual_utr_id}</code></td>
+            <td><code style="background: #f0f7ff; color: #0066cc; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${item.manual_utr_id || '-'}</code></td>
             <td>
                 ${item.manual_payment_screenshot ? `
                     <a href="../${item.manual_payment_screenshot}" target="_blank" class="text-decoration-none">
@@ -131,19 +228,30 @@ function renderVerifications(data) {
                     </a>
                 ` : '<span class="text-muted small">No image</span>'}
             </td>
-            <td>${new Date(item.updated_at).toLocaleString()}</td>
-            <td>
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn-action btn-action-view" onclick="openConfirmModal(${item.id}, 'approve', '${item.full_name}', '${item.amount}', '${item.manual_utr_id}', '${item.manual_payment_screenshot || ''}')" title="Approve Payment">
-                        <i class="bi bi-check-lg"></i>
-                    </button>
-                    <button class="btn-action btn-action-danger" onclick="openConfirmModal(${item.id}, 'reject', '${item.full_name}', '${item.amount}', '${item.manual_utr_id}', '${item.manual_payment_screenshot || ''}')" title="Reject Payment">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            </td>
+            <td>${statusBadge}</td>
+            <td data-order="${item.updated_at || item.created_at}">${new Date(item.updated_at || item.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
+            <td>${actionBtns}</td>
         </tr>
-    `).join('');
+    `}).join('');
+
+    // Initialize DataTable
+    if ($.fn.dataTable.isDataTable('#verificationsTable')) {
+        $('#verificationsTable').DataTable().destroy();
+    }
+    $('#verificationsTable').DataTable({
+        ordering: true,
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        order: [[6, 'desc']],
+        language: {
+            emptyTable: '<div class="text-center py-4"><i class="bi bi-shield-check fs-2 d-block mb-2 text-muted"></i>No verifications found</div>',
+            zeroRecords: '<div class="text-center py-4"><i class="bi bi-search fs-2 d-block mb-2 text-muted"></i>No matching records</div>'
+        },
+        columnDefs: [
+            { orderable: false, targets: [4, 7] }
+        ]
+    });
 }
 
 function openConfirmModal(id, action, name, amount, utr, screenshot) {

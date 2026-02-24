@@ -23,9 +23,26 @@ async function fetchUsers() {
 function renderUsers(users) {
     const tbody = document.getElementById('usersTableBody');
     if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">No users found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-5">No users found.</td></tr>';
         return;
     }
+
+    // Calculate stats
+    let active = 0, pending = 0, banned = 0;
+    users.forEach(u => {
+        if (u.is_banned == 1) banned++;
+        else if (u.payment_status === 'paid') active++;
+        else pending++;
+    });
+
+    const elTotal = document.getElementById('statTotalUsers');
+    const elActive = document.getElementById('statActiveUsers');
+    const elPending = document.getElementById('statPendingUsers');
+    const elBanned = document.getElementById('statBannedUsers');
+    if (elTotal) elTotal.textContent = users.length;
+    if (elActive) elActive.textContent = active;
+    if (elPending) elPending.textContent = pending;
+    if (elBanned) elBanned.textContent = banned;
 
     tbody.innerHTML = users.map(user => `
         <tr>
@@ -54,10 +71,10 @@ function renderUsers(users) {
                     }
                 })()}
             </td>
-            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+            <td data-order="${user.created_at}">${new Date(user.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</td>
             <td>
                 <div class="d-flex gap-2">
-                    <button class="btn-action btn-action-view" onclick="openAdjustModal(${user.id}, '${user.full_name}')" title="Adjust Points">
+                    <button class="btn-action btn-action-view" onclick="openAdjustModal(${user.id}, '${user.full_name.replace(/'/g, "\\'")}')" title="Adjust Points">
                         <i class="bi bi-plus-slash-minus"></i>
                     </button>
                     <button class="btn-action btn-action-view" onclick="toggleBan(${user.id}, ${user.is_banned})" title="${user.is_banned == 1 ? 'Unban' : 'Ban'}">
@@ -70,6 +87,25 @@ function renderUsers(users) {
             </td>
         </tr>
     `).join('');
+
+    // Initialize DataTable
+    if ($.fn.dataTable.isDataTable('#usersTable')) {
+        $('#usersTable').DataTable().destroy();
+    }
+    $('#usersTable').DataTable({
+        ordering: true,
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        order: [[9, 'desc']],
+        language: {
+            emptyTable: '<div class="text-center py-4"><i class="bi bi-people fs-2 d-block mb-2 text-muted"></i>No users found</div>',
+            zeroRecords: '<div class="text-center py-4"><i class="bi bi-search fs-2 d-block mb-2 text-muted"></i>No matching users</div>'
+        },
+        columnDefs: [
+            { orderable: false, targets: [10] }
+        ]
+    });
 }
 
 async function toggleBan(id, currentStatus) {

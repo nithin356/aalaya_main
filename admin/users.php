@@ -7,13 +7,50 @@ require_once 'includes/header.php';
 <div class="data-card">
     <div class="card-header">
         <h2>All Users</h2>
-        <div class="header-actions">
-            <!-- Search/Filter will go here -->
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-0">
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Users</span>
+                <span class="value" id="statTotalUsers">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Active (Paid)</span>
+                <span class="value" id="statActiveUsers">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(249, 115, 22, 0.1); color: #f97316;">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Pending Payment</span>
+                <span class="value" id="statPendingUsers">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <i class="bi bi-slash-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Banned</span>
+                <span class="value" id="statBannedUsers">0</span>
+            </div>
         </div>
     </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="usersTable" class="table table-hover" style="width:100%;">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -31,8 +68,8 @@ require_once 'includes/header.php';
             </thead>
             <tbody id="usersTableBody">
                 <tr>
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
-                        Loading users...
+                    <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
+                        <span class="spinner-border spinner-border-sm me-2"></span> Loading users...
                     </td>
                 </tr>
             </tbody>
