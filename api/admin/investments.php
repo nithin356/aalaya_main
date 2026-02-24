@@ -153,6 +153,7 @@ try {
                         $rewards['level2'] = ['user_id' => $level2_id, 'points' => $points2, 'shares_earned' => $sharesEarned2];
                     }
                 }
+            }
         } else {
             $rewards = [];
         }
