@@ -14,14 +14,14 @@ require_once 'includes/header.php';
                 <form id="settingsForm">
                     <div class="row">
                         <div class="col-md-6 mb-4">
-                            <label class="form-label">Level 1 Referral (%)</label>
-                            <input type="number" name="referral_level1_percentage" id="level1" class="form-input" placeholder="e.g. 20" required>
-                            <small class="text-muted">Percentage earned from direct referrals (registration).</small>
+                            <label class="form-label">Level 1 Referral Commission (Flat Points)</label>
+                            <input type="number" name="referral_level1_commission_flat" id="level1CommFlat" class="form-input" placeholder="e.g. 2000" required>
+                            <small class="text-muted">Flat points awarded to Level 1 referrer for each share earned.</small>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <label class="form-label">Level 2 Referral (%)</label>
-                            <input type="number" name="referral_level2_percentage" id="level2" class="form-input" placeholder="e.g. 10" required>
-                            <small class="text-muted">Percentage earned from secondary referrals (registration).</small>
+                            <label class="form-label">Level 2 Referral Commission (Flat Points)</label>
+                            <input type="number" name="referral_level2_commission_flat" id="level2CommFlat" class="form-input" placeholder="e.g. 1000" required>
+                            <small class="text-muted">Flat points awarded to Level 2 referrer for each share earned.</small>
                         </div>
                         
                         <div class="col-12 mb-3">

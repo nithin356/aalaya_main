@@ -39,8 +39,8 @@ async function fetchSettings() {
 
         if (result.success) {
             const data = result.data;
-            if (data.referral_level1_percentage) document.getElementById('level1').value = data.referral_level1_percentage;
-            if (data.referral_level2_percentage) document.getElementById('level2').value = data.referral_level2_percentage;
+            if (data.referral_level1_commission_flat) document.getElementById('level1CommFlat').value = data.referral_level1_commission_flat;
+            if (data.referral_level2_commission_flat) document.getElementById('level2CommFlat').value = data.referral_level2_commission_flat;
             if (data.referral_max_levels) document.getElementById('maxLevels').value = data.referral_max_levels;
             if (data.min_payout) document.getElementById('minPayout').value = data.min_payout;
             if (data.registration_fee) document.getElementById('regFee').value = data.registration_fee;
