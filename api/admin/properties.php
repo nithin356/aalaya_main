@@ -76,7 +76,7 @@ try {
             $statsSql = "SELECT 
                 COUNT(*) as total_count,
                 SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
-                SUM(investment_value) as total_investment_value
+                SUM(price) as total_investment_value
                 FROM properties";
             $statsStmt = $pdo->query($statsSql);
             $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
