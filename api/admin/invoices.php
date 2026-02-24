@@ -28,7 +28,24 @@ try {
     $stmt = $pdo->query($sql);
     $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode(['success' => true, 'data' => $invoices]);
+    // Get statistics
+    $statsSql = "SELECT 
+            COUNT(*) as total_count,
+            SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+            SUM(CASE WHEN status IN ('pending', 'pending_verification') THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as total_paid_amount
+        FROM invoices WHERE 1=1 ";
+    
+    if ($type === 'registration') {
+        $statsSql .= "AND description LIKE '%Registration%' ";
+    } elseif ($type === 'investment') {
+        $statsSql .= "AND description LIKE '%Investment%' ";
+    }
+    
+    $statsStmt = $pdo->query($statsSql);
+    $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+    
+    echo json_encode(['success' => true, 'data' => $invoices, 'stats' => $stats]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

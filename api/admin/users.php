@@ -39,7 +39,19 @@ try {
             
             $stmt = $pdo->query($sql);
             $users = $stmt->fetchAll();
-            echo json_encode(['success' => true, 'data' => $users]);
+            
+            // Get statistics
+            $statsSql = "SELECT 
+                        COUNT(*) as total_users,
+                        SUM(CASE WHEN is_banned = 1 THEN 1 ELSE 0 END) as banned_users,
+                        SUM(CASE WHEN (SELECT status FROM invoices WHERE user_id = u.id AND description IN ('Registration Fee', 'Subscription Fee') ORDER BY id DESC LIMIT 1) = 'paid' THEN 1 ELSE 0 END) as verified_users,
+                        SUM(CASE WHEN (SELECT status FROM invoices WHERE user_id = u.id AND description IN ('Registration Fee', 'Subscription Fee') ORDER BY id DESC LIMIT 1) = 'pending' THEN 1 ELSE 0 END) as pending_users
+                    FROM users u WHERE u.is_deleted = 0";
+            
+            $statsStmt = $pdo->query($statsSql);
+            $stats = $statsStmt->fetch();
+            
+            echo json_encode(['success' => true, 'data' => $users, 'stats' => $stats]);
             break;
 
         case 'PUT':

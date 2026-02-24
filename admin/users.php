@@ -6,14 +6,57 @@ require_once 'includes/header.php';
 
 <div class="data-card">
     <div class="card-header">
-        <h2>All Users</h2>
-        <div class="header-actions">
-            <!-- Search/Filter will go here -->
+        <h2>User Management</h2>
+        <button class="btn-primary" onclick="loadUsers()" style="margin-left: auto;">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Users</span>
+                <span class="value" id="statTotalUsers">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Verified</span>
+                <span class="value" id="statVerified">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(249, 115, 22, 0.1); color: #f97316;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Pending</span>
+                <span class="value" id="statPending">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <i class="bi bi-ban"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Banned</span>
+                <span class="value" id="statBanned">0</span>
+            </div>
         </div>
     </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="usersTable" class="table table-hover">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -31,7 +74,7 @@ require_once 'includes/header.php';
             </thead>
             <tbody id="usersTableBody">
                 <tr>
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
+                    <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
                         Loading users...
                     </td>
                 </tr>

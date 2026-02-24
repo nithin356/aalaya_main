@@ -11,9 +11,52 @@ require_once 'includes/header.php';
             <i class="bi bi-plus-lg"></i> Add Investment
         </button>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-green">
+                <i class="bi bi-currency-rupee"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Investments</span>
+                <span class="value" id="statTotalInvestment">₹0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Investment Count</span>
+                <span class="value" id="statInvestmentCount">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(249, 105, 170, 0.1); color: #F969AA;">
+                <i class="bi bi-coin"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Points Earned</span>
+                <span class="value" id="statPointsEarned">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Active Investors</span>
+                <span class="value" id="statInvestorCount">0</span>
+            </div>
+        </div>
+    </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="investmentsTable" class="table table-hover">
             <thead>
                 <tr>
                     <th>ID</th>

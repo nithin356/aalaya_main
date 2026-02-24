@@ -1,29 +1,52 @@
 document.addEventListener('DOMContentLoaded', function() {
-    fetchUsers();
+    loadUsers();
 });
 
-async function fetchUsers() {
+async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">Loading users...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading users...</p></td></tr>';
 
     try {
         const response = await fetch('../api/admin/users.php');
         const result = await response.json();
 
         if (result.success) {
+            // Update statistics
+            if (result.stats) {
+                document.getElementById('statTotalUsers').textContent = result.stats.total_users || 0;
+                document.getElementById('statVerified').textContent = result.stats.verified_users || 0;
+                document.getElementById('statPending').textContent = result.stats.pending_users || 0;
+                document.getElementById('statBanned').textContent = result.stats.banned_users || 0;
+            }
+            
             renderUsers(result.data);
+            
+            // Initialize or reinitialize DataTable
+            if ($.fn.dataTable.isDataTable('#usersTable')) {
+                $('#usersTable').DataTable().destroy();
+            }
+            $('#usersTable').DataTable({
+                ordering: true,
+                processing: false,
+                serverSide: false,
+                responsive: true,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                pageLength: 10,
+                order: [[9, 'desc']] // Sort by joined date descending
+            });
         } else {
             showToast.error(result.message);
         }
     } catch (error) {
         console.error('Fetch error:', error);
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-5 text-danger">Error loading users</td></tr>';
     }
 }
 
 function renderUsers(users) {
     const tbody = document.getElementById('usersTableBody');
     if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">No users found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-5">No users found.</td></tr>';
         return;
     }
 
@@ -83,7 +106,7 @@ async function toggleBan(id, currentStatus) {
         });
         const result = await response.json();
         if (result.success) {
-            fetchUsers();
+            loadUsers();
             showToast.success(`User status updated.`);
         } else {
             showToast.error(result.message);
@@ -102,7 +125,7 @@ async function deleteUser(id) {
         });
         const result = await response.json();
         if (result.success) {
-            fetchUsers();
+            loadUsers();
             showToast.success('User deleted successfully.');
         } else {
             showToast.error(result.message);
@@ -142,7 +165,7 @@ document.getElementById('adjustPointsForm').addEventListener('submit', async fun
         if (result.success) {
             showToast.success(result.message);
             closeAdjustModal();
-            fetchUsers();
+            loadUsers();
         } else {
             showToast.error(result.message);
         }

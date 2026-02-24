@@ -79,8 +79,18 @@ try {
         $stmt = $pdo->query($sql);
         $investments = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        // Get investment statistics
+        $statsSql = "SELECT 
+            COUNT(*) as total_count,
+            SUM(amount) as total_amount,
+            SUM(points_earned) as total_points_earned,
+            COUNT(DISTINCT user_id) as total_investors
+            FROM investments";
+        $statsStmt = $pdo->query($statsSql);
+        $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+        
         ob_clean();
-        echo json_encode(['success' => true, 'data' => $investments]);
+        echo json_encode(['success' => true, 'data' => $investments, 'stats' => $stats]);
 
     } elseif ($method === 'POST') {
         // Add Investment

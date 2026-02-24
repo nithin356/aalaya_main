@@ -58,34 +58,59 @@ async function loadInvestments() {
         const response = await fetch('../api/admin/investments.php');
         const result = await response.json();
 
-        if (result.success && result.data.length > 0) {
-            tbody.innerHTML = result.data.map(item => `
-                <tr>
-                    <td>#${item.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
-                                <i class="bi bi-person text-secondary"></i>
+        if (result.success) {
+            // Update statistics
+            if (result.stats) {
+                const totalAmount = result.stats.total_amount ? parseFloat(result.stats.total_amount).toLocaleString('en-IN', {maximumFractionDigits: 0}) : 0;
+                document.getElementById('statTotalInvestment').textContent = '₹' + totalAmount;
+                document.getElementById('statInvestmentCount').textContent = result.stats.total_count || 0;
+                document.getElementById('statPointsEarned').textContent = result.stats.total_points_earned ? Math.round(result.stats.total_points_earned) : 0;
+                document.getElementById('statInvestorCount').textContent = result.stats.total_investors || 0;
+            }
+
+            if (result.data && result.data.length > 0) {
+                tbody.innerHTML = result.data.map(item => `
+                    <tr>
+                        <td>#${item.id}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                                    <i class="bi bi-person text-secondary"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block fw-bold">${item.full_name}</span>
+                                    <small class="text-muted">${item.phone}</small>
+                                </div>
                             </div>
-                            <div>
-                                <span class="d-block fw-bold">${item.full_name}</span>
-                                <small class="text-muted">${item.phone}</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="fw-bold">₹${parseFloat(item.amount).toLocaleString()}</td>
-                    <td>
-                        ${item.points_earned > 0 
-                            ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">+${item.points_earned} Points</span>` 
-                            : `<span class="text-muted">-</span>`
-                        }
-                    </td>
-                    <td class="text-muted">${new Date(item.created_at).toLocaleDateString()}</td>
-                    <td class="small text-muted">${item.admin_name || 'System'}</td>
-                </tr>
-            `).join('');
-        } else {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No investments found.</td></tr>`;
+                        </td>
+                        <td class="fw-bold">₹${parseFloat(item.amount).toLocaleString()}</td>
+                        <td>
+                            ${item.points_earned > 0 
+                                ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">+${item.points_earned} Points</span>` 
+                                : `<span class="text-muted">-</span>`
+                            }
+                        </td>
+                        <td class="text-muted">${new Date(item.created_at).toLocaleDateString()}</td>
+                        <td class="small text-muted">${item.admin_name || 'System'}</td>
+                    </tr>
+                `).join('');
+                
+                // Initialize or reinitialize DataTable
+                if ($.fn.dataTable.isDataTable('#investmentsTable')) {
+                    $('#investmentsTable').DataTable().destroy();
+                }
+                $('#investmentsTable').DataTable({
+                    ordering: true,
+                    processing: false,
+                    serverSide: false,
+                    responsive: true,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    pageLength: 10,
+                    order: [[4, 'desc']] // Sort by date descending (most recent first)
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No investments found.</td></tr>`;
+            }
         }
     } catch (error) {
         console.error('Error:', error);

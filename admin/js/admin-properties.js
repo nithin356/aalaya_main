@@ -69,7 +69,7 @@ let removedMediaIds = new Set();
 
 async function fetchProperties() {
     const tbody = document.getElementById('propertiesTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">Loading properties...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading properties...</p></td></tr>';
 
     try {
         const response = await fetch('../api/admin/properties.php');
@@ -77,10 +77,35 @@ async function fetchProperties() {
 
         if (result.success) {
             currentProperties = result.data;
+            
+            // Update statistics
+            if (result.stats) {
+                document.getElementById('statTotalProps').textContent = result.stats.total_count || 0;
+                document.getElementById('statActive').textContent = result.stats.active_count || 0;
+                document.getElementById('statInactive').textContent = result.stats.total_count - (result.stats.active_count || 0) || 0;
+                const totalValue = result.stats.total_investment_value ? parseFloat(result.stats.total_investment_value).toLocaleString('en-IN', {maximumFractionDigits: 0}) : 0;
+                document.getElementById('statTotalValue').textContent = '₹' + totalValue;
+            }
+            
             renderProperties(result.data);
+            
+            // Initialize or reinitialize DataTable
+            if ($.fn.dataTable.isDataTable('#propertiesTable')) {
+                $('#propertiesTable').DataTable().destroy();
+            }
+            $('#propertiesTable').DataTable({
+                ordering: true,
+                processing: false,
+                serverSide: false,
+                responsive: true,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                pageLength: 10,
+                order: [[0, 'desc']] // Sort by ID descending
+            });
         }
     } catch (error) {
         console.error('Error:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5">Failed to load properties</td></tr>';
     }
 }
 

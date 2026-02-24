@@ -11,9 +11,52 @@ require_once 'includes/header.php';
             <i class="bi bi-plus-lg"></i> Add New Property
         </button>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-green">
+                <i class="bi bi-building"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Properties</span>
+                <span class="value" id="statTotalProps">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Active</span>
+                <span class="value" id="statActive">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(249, 115, 22, 0.1); color: #f97316;">
+                <i class="bi bi-pause-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Inactive</span>
+                <span class="value" id="statInactive">0</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                <i class="bi bi-currency-rupee"></i>
+            </div>
+            <div class="stat-info">
+                <span class="label">Total Investment Value</span>
+                <span class="value" id="statTotalValue">₹0</span>
+            </div>
+        </div>
+    </div>
     
     <div class="table-responsive">
-        <table>
+        <table id="propertiesTable" class="table table-hover">
             <thead>
                 <tr>
                     <th>ID</th>
