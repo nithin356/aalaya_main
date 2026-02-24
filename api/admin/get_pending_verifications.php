@@ -22,9 +22,9 @@ try {
 
     // Get statistics
     $statsSql = "SELECT 
-        (SELECT COUNT(*) FROM invoices WHERE status = 'pending_verification' AND type = 'registration') as pending_registration,
-        (SELECT COUNT(*) FROM invoices WHERE status = 'paid' AND type = 'registration') as approved_registration,
-        (SELECT COUNT(*) FROM invoices WHERE status = 'pending' AND type = 'registration' AND manual_utr_id IS NOT NULL) as rejected_registration,
+        (SELECT COUNT(*) FROM invoices WHERE status = 'pending_verification' AND description LIKE '%Registration%') as pending_registration,
+        (SELECT COUNT(*) FROM invoices WHERE status = 'paid' AND description LIKE '%Registration%') as approved_registration,
+        (SELECT COUNT(*) FROM invoices WHERE status = 'pending' AND description LIKE '%Registration%' AND manual_utr_id IS NOT NULL) as rejected_registration,
         (SELECT SUM(amount) FROM invoices WHERE status = 'pending_verification') as total_pending_amount,
         (SELECT COUNT(*) FROM invoices WHERE status = 'pending_verification') as total_pending
     ";
