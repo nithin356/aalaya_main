@@ -6,57 +6,14 @@ require_once 'includes/header.php';
 
 <div class="data-card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Manual Payment Verifications</h2>
+        <h2>Pending Verifications</h2>
         <button class="btn-primary" onclick="loadVerifications()">
             <i class="bi bi-arrow-clockwise"></i> Refresh
         </button>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-grid mb-4">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(249, 152, 0, 0.1); color: #F99800;">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div class="stat-info">
-                <span class="label">Pending Verification</span>
-                <span class="value" id="statPending">0</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-info">
-                <span class="label">Approved</span>
-                <span class="value" id="statApproved">0</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                <i class="bi bi-x-circle"></i>
-            </div>
-            <div class="stat-info">
-                <span class="label">Rejected</span>
-                <span class="value" id="statRejected">0</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                <i class="bi bi-currency-rupee"></i>
-            </div>
-            <div class="stat-info">
-                <span class="label">Total Pending Amount</span>
-                <span class="value" id="statAmount">₹0</span>
-            </div>
-        </div>
-    </div>
-
     <div class="table-responsive">
-        <table id="verificationsTable" class="table table-hover">
+        <table>
             <thead>
                 <tr>
                     <th>Invoice ID</th>
@@ -134,43 +91,20 @@ let currentAction = null;
 
 async function loadVerifications() {
     const tbody = document.getElementById('verificationsTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading pending verifications...</p></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 mb-0">Loading pending verifications...</p></td></tr>';
 
     try {
         const response = await fetch('../api/admin/get_pending_verifications.php');
         const result = await response.json();
 
         if (result.success) {
-            // Update statistics
-            if (result.stats) {
-                document.getElementById('statPending').textContent = result.stats.total_pending || 0;
-                document.getElementById('statApproved').textContent = result.stats.approved_registration || 0;
-                document.getElementById('statRejected').textContent = result.stats.rejected_registration || 0;
-                const amount = result.stats.total_pending_amount ? parseFloat(result.stats.total_pending_amount).toLocaleString('en-IN', {maximumFractionDigits: 0}) : 0;
-                document.getElementById('statAmount').textContent = '₹' + amount;
-            }
-            
             renderVerifications(result.data);
-            
-            // Initialize or reinitialize DataTable
-            if ($.fn.dataTable.isDataTable('#verificationsTable')) {
-                $('#verificationsTable').DataTable().destroy();
-            }
-            $('#verificationsTable').DataTable({
-                ordering: true,
-                processing: false,
-                serverSide: false,
-                responsive: true,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                pageLength: 10,
-                order: [[5, 'desc']] // Sort by date descending (most recent first)
-            });
         } else {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">${result.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger">${result.message}</td></tr>`;
         }
     } catch (error) {
         console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-danger">Server Error. Please try again later.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-danger">Server Error. Please try again later.</td></tr>';
     }
 }
 
