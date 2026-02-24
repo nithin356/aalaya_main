@@ -51,15 +51,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
-                <a href="users.php" class="nav-link <?php echo $current_page == 'users.php' ? 'active' : ''; ?>">
+                <a href="users_management.php" class="nav-link <?php echo $current_page == 'users_management.php' ? 'active' : ''; ?>">
                     <i class="bi bi-people"></i>
-                    <span>Users</span>
+                    <span>Users Management</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="user_audit.php" class="nav-link <?php echo $current_page == 'user_audit.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-person-check"></i>
-                    <span>User Audit</span>
+                <a href="network.php" class="nav-link <?php echo $current_page == 'network.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Network</span>
                 </a>
             </li>
             <li class="nav-item">

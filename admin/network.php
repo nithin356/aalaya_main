@@ -422,7 +422,7 @@ function renderOrgChart($nodes, $isRoot = false) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">PAN Number <span class="text-danger">*</span></label>
-                        <input type="text" name="pan_number" class="form-input" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Valid PAN Format (e.g. ABCDE1234F)" maxlength="10" placeholder="10-char PAN" style="text-transform: uppercase;">
+                        <input type="text" name="pan_number" id="admin_pan_number" class="form-input" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Valid PAN Format (e.g. ABCDE1234F)" maxlength="10" placeholder="10-char PAN" style="text-transform: uppercase;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Referred By <span class="text-muted small">(Optional)</span></label>
@@ -459,6 +459,14 @@ function showRegisterModal() {
     const modalEl = document.getElementById('registerUserModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
+}
+
+// Convert PAN to uppercase in real-time
+const adminPanInput = document.getElementById('admin_pan_number');
+if (adminPanInput) {
+    adminPanInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
 }
 
 document.getElementById('registerUserForm').addEventListener('submit', async function(e) {

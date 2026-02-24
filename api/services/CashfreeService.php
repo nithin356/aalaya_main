@@ -88,7 +88,7 @@ class CashfreeService {
     public function createOrder($orderId, $amount, $customerId, $customerPhone, $customerEmail, $returnUrl) {
         $url = $this->paymentBaseUrl . '/pg/orders';
         
-        // Build notify_url for server-to-server webhook
+        // Build notify_url for server-to-server webhook (must be HTTPS for Cashfree)
         $notifyUrl = '';
         $configPath = __DIR__ . '/../../config/config.prod.ini';
         if (file_exists(__DIR__ . '/../../config/config.ini')) {
@@ -98,6 +98,8 @@ class CashfreeService {
             $config = parse_ini_file($configPath, true);
             $baseUrl = rtrim($config['paths']['base_url'] ?? '', '/');
             if ($baseUrl) {
+                // Cashfree requires HTTPS for notify_url — convert http to https
+                $baseUrl = str_replace('http://', 'https://', $baseUrl);
                 $notifyUrl = $baseUrl . '/api/payment/cashfree_webhook.php';
             }
         }

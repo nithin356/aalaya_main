@@ -103,7 +103,7 @@ $reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111 : floatval($re
 
                 <div class="mb-3">
                     <div class="input-wrapper">
-                        <input type="text" name="pan_number" class="form-input" placeholder="PAN Number" maxlength="10" style="text-transform: uppercase;" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
+                        <input type="text" name="pan_number" id="pan_number" class="form-input" placeholder="PAN Number" maxlength="10" style="text-transform: uppercase;" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
                         <i class="bi bi-card-text"></i>
                     </div>
                 </div>
@@ -139,6 +139,14 @@ $reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111 : floatval($re
     <script src="../assets/js/toast.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Convert PAN to uppercase in actual input value (not just display)
+        const panInput = document.getElementById('pan_number');
+        if (panInput) {
+            panInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
         const form = document.getElementById('selfRegisterForm');
         
         form.addEventListener('submit', async function(e) {
