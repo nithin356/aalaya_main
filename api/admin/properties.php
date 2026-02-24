@@ -73,10 +73,14 @@ try {
             unset($prop);
             
             // Get statistics
+            // NOTE: the properties table has no "investment_value" column.  Previously this
+            // caused a database error when the admin UI loaded.  The intended figure is the
+            // total value of all properties, which is represented by the `price` column, so
+            // we sum that instead.
             $statsSql = "SELECT 
                 COUNT(*) as total_count,
                 SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
-                SUM(investment_value) as total_investment_value
+                SUM(price) as total_investment_value
                 FROM properties";
             $statsStmt = $pdo->query($statsSql);
             $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);

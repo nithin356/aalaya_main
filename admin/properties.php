@@ -49,7 +49,7 @@ require_once 'includes/header.php';
                 <i class="bi bi-currency-rupee"></i>
             </div>
             <div class="stat-info">
-                <span class="label">Total Investment Value</span>
+                <span class="label">Total Property Value</span>
                 <span class="value" id="statTotalValue">₹0</span>
             </div>
         </div>
