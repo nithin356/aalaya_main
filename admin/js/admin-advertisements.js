@@ -98,8 +98,22 @@ function renderAds(ads) {
             <td>#${ad.id}</td>
             <td>
                 <div style="position: relative; width: 100px; height: 33px;">
-                    <img src="../${ad.image_path || 'assets/images/logo-placeholder.png'}" 
-                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; background: #eee;">
+                    ${(() => {
+                        // prefer using first media item if available
+                        if (ad.media && ad.media.length > 0) {
+                            const first = ad.media[0];
+                            if (first.file_type === 'image') {
+                                return `<img src="../${first.file_path}" 
+                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; background: #eee;">`;
+                            } else {
+                                // simple video preview (muted, no controls)
+                                return `<video src="../${first.file_path}" muted playsinline style="width:100%;height:100%;object-fit:cover;border-radius:4px;background:#000;"></video>`;
+                            }
+                        }
+                        // fallback to static image_path
+                        return `<img src="../${ad.image_path || 'assets/images/logo-placeholder.png'}" 
+                                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; background: #eee;">`;
+                    })()}
                     ${ad.media && ad.media.length > 1 ? `
                          <span style="position: absolute; bottom: -5px; right: -5px; background: rgba(0,0,0,0.7); color: #fff; font-size: 10px; padding: 2px 4px; border-radius: 4px;">
                             +${ad.media.length - 1}
