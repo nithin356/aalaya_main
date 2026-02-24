@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     description VARCHAR(255),
     status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
     payment_id VARCHAR(100),
+    admin_comment TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -160,7 +161,7 @@ INSERT INTO system_config (config_key, config_value, description) VALUES
 ('referral_level1_percentage', '20', 'Level 1 referral percentage'),
 ('referral_level2_percentage', '10', 'Level 2 referral percentage'),
 ('referral_max_levels', '2', 'Maximum referral levels'),
-('registration_fee', '0', 'Registration fee amount')
+('registration_fee', '1111', 'Registration fee amount')
 ON DUPLICATE KEY UPDATE config_value=VALUES(config_value);
 
 -- Insert a default admin user (password: admin123)

@@ -16,9 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pdo = getDB();
 $invoice_id = $_POST['invoice_id'] ?? 0;
 $action = $_POST['action'] ?? ''; // 'approve' or 'reject'
+$admin_comment = trim($_POST['admin_comment'] ?? '');
 
 if (!$invoice_id || !in_array($action, ['approve', 'reject'])) {
     echo json_encode(['success' => false, 'message' => 'Invalid request parameters.']);
+    exit;
+}
+
+// Rejection requires a comment
+if ($action === 'reject' && empty($admin_comment)) {
+    echo json_encode(['success' => false, 'message' => 'A rejection reason is required.']);
     exit;
 }
 
@@ -39,8 +46,8 @@ try {
     if ($action === 'approve') {
         // 2. Mark Paid - Preserve existing payment_method if already set (e.g. 'cashfree')
         $payment_method = $invoice['payment_method'] ?? 'manual';
-        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_method=?, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$payment_method, $invoice_id]);
+        $stmt = $pdo->prepare("UPDATE invoices SET status='paid', payment_method=?, admin_comment=?, updated_at=NOW() WHERE id=?");
+        $stmt->execute([$payment_method, $admin_comment ?: null, $invoice_id]);
 
         // 3. Reward Logic (Based on payment_callback.php)
         if ($invoice['description'] === 'Registration Fee' || $invoice['description'] === 'Subscription Fee') {
@@ -62,9 +69,9 @@ try {
         // Let's mark as pending so user can re-submit if they made a typo, or cancelled if fraudulent.
         // User said "confirm user has paid... once done he will able to login".
         // If rejected, maybe we should let them try again.
-        $stmt = $pdo->prepare("UPDATE invoices SET status='pending', manual_utr_id=NULL, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$invoice_id]);
-        $message = 'Payment rejected. Invoice returned to pending status.';
+        $stmt = $pdo->prepare("UPDATE invoices SET status='pending', manual_utr_id=NULL, manual_payment_screenshot=NULL, admin_comment=?, updated_at=NOW() WHERE id=?");
+        $stmt->execute([$admin_comment, $invoice_id]);
+        $message = 'Payment rejected. Reason: ' . $admin_comment;
     }
 
     $pdo->commit();

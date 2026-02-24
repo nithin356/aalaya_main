@@ -76,6 +76,11 @@ async function toggleBan(id, currentStatus) {
     if (!confirm(`Are you sure you want to ${currentStatus == 1 ? 'unban' : 'ban'} this user?`)) return;
 
     try {
+        const response = await fetch('../api/admin/users.php', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'toggle_ban', id: id })
+        });
         const result = await response.json();
         if (result.success) {
             fetchUsers();

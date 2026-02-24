@@ -4,6 +4,11 @@ if (isset($_SESSION['user_id'])) {
     header("Location: dashboard.php");
     exit;
 }
+require_once '../includes/db.php';
+$pdo = getDB();
+$feeStmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'registration_fee'");
+$reg_fee = $feeStmt->fetchColumn();
+$reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111 : floatval($reg_fee);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -105,7 +110,7 @@ if (isset($_SESSION['user_id'])) {
 
                 <!-- Payment Section -->
                 <div class="mb-4 p-4 text-center" style="background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.2);">
-                    <p class="small text-white-50 mb-1">AALAYA POINTS activation fee: <strong>1111</strong></p>
+                    <p class="small text-white-50 mb-1">AALAYA POINTS activation fee: <strong>₹<?php echo number_format($reg_fee, 0); ?></strong></p>
                     <p class="small text-warning mb-0"><i class="bi bi-info-circle me-1"></i> After registration, you will be redirected to secure test gateway payment.</p>
                 </div>
 

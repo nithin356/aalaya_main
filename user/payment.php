@@ -93,6 +93,12 @@ $sdk_mode = ($cashfree_mode === 'prod' || $cashfree_mode === 'production') ? 'pr
         </div>
 
         <div id="paymentArea" <?php echo $invoice['status'] === 'pending_verification' ? 'style="display:none;"' : ''; ?>>
+            <?php if (!empty($invoice['admin_comment']) && $invoice['status'] === 'pending'): ?>
+                <div class="alert alert-danger mb-4" role="alert">
+                    <h6 class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Payment Rejected</h6>
+                    <p class="mb-0 small"><?php echo htmlspecialchars($invoice['admin_comment']); ?></p>
+                </div>
+            <?php endif; ?>
             <?php if ($show_gateway_payment): ?>
                 <div class="mb-4">
                     <button type="button" id="payGatewayBtn" class="btn btn-success w-100 py-3 fw-bold fs-6 shadow-sm">

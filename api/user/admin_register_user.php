@@ -92,18 +92,23 @@ try {
     $user_id = $pdo->lastInsertId();
 
     // DEFAULT STATUS: PENDING (Set account to 'hold' until payment is verified)
+    // Read registration fee from system_config
+    $feeStmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'registration_fee'");
+    $reg_fee = $feeStmt->fetchColumn();
+    $reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111.00 : floatval($reg_fee);
+
     $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, payment_method, created_at, updated_at) 
-               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
-    $pdo->prepare($invSql)->execute([$user_id]);
+               VALUES (?, ?, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
+    $pdo->prepare($invSql)->execute([$user_id, $reg_fee]);
 
     /* REMOVED AUTO-ACTIVATION logic - Admin must verify payment now
     // Update User Points
-    $pdo->prepare("UPDATE users SET total_points = total_points + 1111.00 WHERE id = ?")->execute([$user_id]);
+    $pdo->prepare("UPDATE users SET total_points = total_points + ? WHERE id = ?")->execute([$reg_fee, $user_id]);
 
     // Log the transaction
     $logSql = "INSERT INTO referral_transactions (user_id, referred_user_id, level, points_earned, percentage, transaction_type) 
-               VALUES (?, ?, 0, 1111.00, 100, 'subscription_reward')";
-    $pdo->prepare($logSql)->execute([$user_id, $user_id]);
+               VALUES (?, ?, 0, ?, 100, 'subscription_reward')";
+    $pdo->prepare($logSql)->execute([$user_id, $user_id, $reg_fee]);
     */
 
     echo json_encode(['success' => true, 'message' => 'User registered successfully! They can now login with their phone and password.']);

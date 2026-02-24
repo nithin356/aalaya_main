@@ -8,16 +8,22 @@ try {
         ADD COLUMN IF NOT EXISTS manual_utr_id VARCHAR(100) DEFAULT NULL AFTER payment_id,
         ADD COLUMN IF NOT EXISTS payment_method ENUM('cashfree', 'manual') DEFAULT 'cashfree' AFTER manual_utr_id");
 
-    // 2. Add 'pending_verification' to status ENUM
-    // Note: In MySQL/MariaDB, modifying an ENUM is usually via MODIFY COLUMN
-    // Let's first check current definition to be safe
-    $stmt = $pdo->query("DESCRIBE invoices 'status'");
+    // 2. Add screenshot column if missing
+    $pdo->exec("ALTER TABLE invoices 
+        ADD COLUMN IF NOT EXISTS manual_payment_screenshot VARCHAR(255) DEFAULT NULL AFTER manual_utr_id");
+
+    // 3. Add 'pending_verification' to status ENUM
+    $stmt = $pdo->query("DESCRIBE invoices status");
     $status_row = $stmt->fetch();
     if ($status_row) {
         $pdo->exec("ALTER TABLE invoices MODIFY COLUMN status ENUM('pending', 'paid', 'cancelled', 'pending_verification') DEFAULT 'pending'");
     }
 
-    // 3. Backfill payment_method for legacy rows where it is NULL
+    // 4. Add admin_comment column for rejection/approval reasons
+    $pdo->exec("ALTER TABLE invoices 
+        ADD COLUMN IF NOT EXISTS admin_comment TEXT DEFAULT NULL AFTER payment_method");
+
+    // 5. Backfill payment_method for legacy rows where it is NULL
     // Manual proof present -> manual
     $pdo->exec("UPDATE invoices
         SET payment_method = 'manual'
@@ -31,6 +37,16 @@ try {
     $pdo->exec("UPDATE invoices
         SET payment_method = 'cashfree'
         WHERE payment_method IS NULL");
+
+    // 6. Set registration_fee to 1111 if currently 0 or missing
+    $feeCheck = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'registration_fee'");
+    $currentFee = $feeCheck->fetchColumn();
+    if ($currentFee === false || floatval($currentFee) <= 0) {
+        $pdo->exec("INSERT INTO system_config (config_key, config_value, description) 
+                    VALUES ('registration_fee', '1111', 'Registration fee amount') 
+                    ON DUPLICATE KEY UPDATE config_value = '1111'");
+        echo "Registration fee set to 1111.\n";
+    }
 
     echo "Schema updated successfully.\n";
 } catch (Exception $e) {

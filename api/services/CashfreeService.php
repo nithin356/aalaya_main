@@ -105,6 +105,16 @@ class CashfreeService {
         return $this->makeRequest($url, $data, 'POST', 'PAYMENT', '2022-09-01');
     }
 
+    /**
+     * Get Order Status from Cashfree
+     * @param string $orderId
+     * @return array
+     */
+    public function getOrderStatus($orderId) {
+        $url = $this->paymentBaseUrl . '/pg/orders/' . $orderId;
+        return $this->makeRequest($url, null, 'GET', 'PAYMENT', '2022-09-01');
+    }
+
     private function makeRequest($url, $data, $method = 'POST', $type = 'VERIFICATION', $apiVersion = null) {
         $keys = ($type === 'PAYMENT') ? $this->paymentKeys : $this->verificationKeys;
         

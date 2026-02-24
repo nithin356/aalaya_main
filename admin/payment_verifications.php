@@ -63,6 +63,17 @@ require_once 'includes/header.php';
                         <img id="modalScreenshotImg" src="#" class="img-fluid rounded border shadow-sm w-100" style="max-height: 300px; object-fit: contain; background: #f8f9fa;">
                     </a>
                 </div>
+
+                <div id="adminCommentContainer" class="mt-3" style="display:none;">
+                    <label class="form-label fw-bold text-danger"><i class="bi bi-chat-left-text me-1"></i> Rejection Reason <span class="text-danger">*</span></label>
+                    <textarea id="adminComment" class="form-control" rows="3" placeholder="Enter reason for rejection (required)..." maxlength="500"></textarea>
+                    <small class="text-muted">This will be visible to the user.</small>
+                </div>
+
+                <div id="approvalCommentContainer" class="mt-3" style="display:none;">
+                    <label class="form-label fw-bold text-muted"><i class="bi bi-chat-left-text me-1"></i> Admin Note (optional)</label>
+                    <textarea id="approvalComment" class="form-control" rows="2" placeholder="Optional note..." maxlength="500"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -157,11 +168,19 @@ function openConfirmModal(id, action, name, amount, utr, screenshot) {
         document.getElementById('modalBodyText').textContent = 'Are you sure you want to approve this payment and activate the user registration?';
         document.getElementById('confirmBtn').className = 'btn btn-primary';
         document.getElementById('confirmBtn').textContent = 'Confirm Approval';
+        document.getElementById('adminCommentContainer').style.display = 'none';
+        document.getElementById('approvalCommentContainer').style.display = 'block';
+        document.getElementById('adminComment').value = '';
+        document.getElementById('approvalComment').value = '';
     } else {
         document.getElementById('modalTitle').textContent = 'Confirm Rejection';
         document.getElementById('modalBodyText').textContent = 'Are you sure you want to reject this payment? The user will have to resubmit their UTR.';
         document.getElementById('confirmBtn').className = 'btn btn-danger';
         document.getElementById('confirmBtn').textContent = 'Confirm Rejection';
+        document.getElementById('adminCommentContainer').style.display = 'block';
+        document.getElementById('approvalCommentContainer').style.display = 'none';
+        document.getElementById('adminComment').value = '';
+        document.getElementById('approvalComment').value = '';
     }
 
     const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
@@ -171,6 +190,17 @@ function openConfirmModal(id, action, name, amount, utr, screenshot) {
 async function processAction() {
     const btn = document.getElementById('confirmBtn');
     const originalText = btn.textContent;
+
+    // Validate comment is required for rejection
+    if (currentAction === 'reject') {
+        const comment = document.getElementById('adminComment').value.trim();
+        if (!comment) {
+            alert('Please provide a reason for rejection. This is mandatory.');
+            document.getElementById('adminComment').focus();
+            return;
+        }
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
 
@@ -178,6 +208,12 @@ async function processAction() {
         const formData = new FormData();
         formData.append('invoice_id', currentInvoice);
         formData.append('action', currentAction);
+
+        if (currentAction === 'reject') {
+            formData.append('admin_comment', document.getElementById('adminComment').value.trim());
+        } else {
+            formData.append('admin_comment', document.getElementById('approvalComment').value.trim());
+        }
 
         const response = await fetch('../api/admin/verify_manual_payment.php', {
             method: 'POST',

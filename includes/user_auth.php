@@ -30,7 +30,7 @@ if (!isset($_SESSION['user_payment_tag']) || !isset($_SESSION['hide_network_tab'
 }
 
 // Check for mandatory pending payment or verification
-$stmt = $pdo->prepare("SELECT id, status FROM invoices WHERE user_id = ? AND status IN ('pending', 'pending_verification') AND (description = 'Registration Fee' OR description = 'Subscription Fee') ORDER BY created_at DESC LIMIT 1");
+$stmt = $pdo->prepare("SELECT id, status, admin_comment FROM invoices WHERE user_id = ? AND status IN ('pending', 'pending_verification') AND (description = 'Registration Fee' OR description = 'Subscription Fee') ORDER BY created_at DESC LIMIT 1");
 $stmt->execute([$user_id]);
 $pending_registration_invoice = $stmt->fetch();
 

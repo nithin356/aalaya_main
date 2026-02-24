@@ -29,6 +29,19 @@ try {
         foreach ($input as $key => $value) {
             $stmt->execute([$key, $value]);
         }
+
+        // If registration_fee changed, update all PENDING registration invoices to the new fee
+        if (isset($input['registration_fee'])) {
+            $newFee = floatval($input['registration_fee']);
+            if ($newFee > 0) {
+                $updateInvoices = $pdo->prepare(
+                    "UPDATE invoices SET amount = ?, updated_at = NOW() 
+                     WHERE description IN ('Registration Fee', 'Subscription Fee') 
+                     AND status = 'pending'"
+                );
+                $updateInvoices->execute([$newFee]);
+            }
+        }
         
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Configuration updated successfully!']);

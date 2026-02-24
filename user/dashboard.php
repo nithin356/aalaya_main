@@ -106,9 +106,13 @@ $show_payment_block = !empty($pending_registration_invoice);
                     </h2>
                     <p class="text-white-50 mb-4">
                         <?php 
-                        echo $pending_registration_invoice['status'] === 'pending_verification' 
-                            ? 'Your payment is being verified by the admin. Please wait a few hours to access the platform.' 
-                            : 'Your account is currently on hold. Please complete the registration payment to access all features.'; 
+                        if ($pending_registration_invoice['status'] === 'pending_verification') {
+                            echo 'Your payment is being verified by the admin. Please wait a few hours to access the platform.';
+                        } elseif (!empty($pending_registration_invoice['admin_comment'])) {
+                            echo '<strong class="text-danger">Rejected:</strong> ' . htmlspecialchars($pending_registration_invoice['admin_comment']) . '<br><br>Please re-submit your payment.';
+                        } else {
+                            echo 'Your account is currently on hold. Please complete the registration payment to access all features.';
+                        }
                         ?>
                     </p>
                     <a href="payment.php?invoice_id=<?php echo $pending_registration_invoice['id']; ?>" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold">

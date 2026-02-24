@@ -85,9 +85,14 @@ try {
     $user_id = $pdo->lastInsertId();
 
     // DEFAULT STATUS: PENDING (Set account to 'hold' until payment is verified)
+    // Read registration fee from system_config
+    $feeStmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'registration_fee'");
+    $reg_fee = $feeStmt->fetchColumn();
+    $reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111.00 : floatval($reg_fee);
+
     $invSql = "INSERT INTO invoices (user_id, amount, description, status, payment_id, payment_method, created_at, updated_at) 
-               VALUES (?, 1111.00, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
-    $pdo->prepare($invSql)->execute([$user_id]);
+               VALUES (?, ?, 'Registration Fee', 'pending', NULL, 'cashfree', NOW(), NOW())";
+    $pdo->prepare($invSql)->execute([$user_id, $reg_fee]);
     $invoice_id = $pdo->lastInsertId();
 
     $_SESSION['user_id'] = $user_id;
