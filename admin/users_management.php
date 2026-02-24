@@ -166,6 +166,45 @@ require_once 'includes/header.php';
     </div>
 </div>
 
+<!-- Send to Payment Modal -->
+<div id="sendPaymentModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-credit-card me-2"></i>Send to Payment Gateway</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to send this user to the <strong>payment gateway</strong> stage:</p>
+                <div class="p-3 bg-light rounded">
+                    <div><strong id="payUserName">User Name</strong></div>
+                    <div class="small text-muted">ID: <span id="payUserId">—</span> | Phone: <span id="payUserPhone">—</span></div>
+                </div>
+                <div id="payPaidWarning" class="alert alert-warning small mt-3 mb-2" style="display:none;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>This user was previously approved manually without actual payment.</strong>
+                    Their paid status will be revoked and registration points deducted. They must pay via the payment gateway to be re-activated.
+                </div>
+                <div class="alert alert-info small mt-2 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>What happens:</strong>
+                    <ul class="mb-0 mt-1">
+                        <li>A pending registration invoice will be created/reset for this user</li>
+                        <li>On their next login, they will see the <strong>Cashfree payment gateway</strong></li>
+                        <li>Once they pay, the invoice will be auto-confirmed</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSendPaymentBtn" onclick="confirmSendToPayment()">
+                    <i class="bi bi-send me-1"></i> Send to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal fade" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -207,12 +246,13 @@ require_once 'includes/header.php';
 <script>
 let currentUserId = null;
 let currentUserAction = null;
-let banModal, deleteModal, adjustModal;
+let banModal, deleteModal, adjustModal, sendPaymentModal;
 
 document.addEventListener('DOMContentLoaded', function() {
     banModal = new bootstrap.Modal(document.getElementById('banModal'));
     deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     adjustModal = new bootstrap.Modal(document.getElementById('adjustPointsModal'));
+    sendPaymentModal = new bootstrap.Modal(document.getElementById('sendPaymentModal'));
     
     document.getElementById('adjustPointsForm').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -292,15 +332,20 @@ function renderUsers(data) {
         const dateStr = date.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
 
         // Actions
+        const isPaid = user.payment_status === 'paid';
+        const safeName = (user.full_name || '').replace(/'/g, "\\'");
         let actionBtns = `
             <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-outline-${isPaid ? 'warning' : 'primary'}" onclick="openSendPaymentModal(${user.id}, '${safeName}', '${user.phone}', ${isPaid})" title="${isPaid ? 'Revoke & Send to Payment' : 'Send to Payment Gateway'}">
+                    <i class="bi bi-credit-card"></i>
+                </button>
                 <button class="btn btn-outline-secondary" onclick="openAdjustModal(${user.id}, '${user.full_name}', ${user.total_points})" title="Adjust Points">
                     <i class="bi bi-plus-circle"></i>
                 </button>
-                <button class="btn btn-outline-${user.is_banned ? 'warning' : 'danger'}" onclick="openBanModal(${user.id}, '${user.full_name.replace(/'/g, "\\'")}', '${user.phone}', ${user.is_banned})" title="${user.is_banned ? 'Unban' : 'Ban'}">
+                <button class="btn btn-outline-${user.is_banned ? 'warning' : 'danger'}" onclick="openBanModal(${user.id}, '${safeName}', '${user.phone}', ${user.is_banned})" title="${user.is_banned ? 'Unban' : 'Ban'}">
                     <i class="bi bi-${user.is_banned ? 'arrow-counterclockwise' : 'lock'}"></i>
                 </button>
-                <button class="btn btn-outline-danger" onclick="openDeleteModal(${user.id}, '${user.full_name.replace(/'/g, "\\'")}', '${user.phone}')" title="Delete User">
+                <button class="btn btn-outline-danger" onclick="openDeleteModal(${user.id}, '${safeName}', '${user.phone}')" title="Delete User">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -343,6 +388,59 @@ function renderUsers(data) {
             { orderable: false, targets: [11] }
         ]
     });
+}
+
+function openSendPaymentModal(userId, userName, userPhone, isPaid) {
+    currentUserId = userId;
+    document.getElementById('payUserName').textContent = userName;
+    document.getElementById('payUserId').textContent = userId;
+    document.getElementById('payUserPhone').textContent = userPhone;
+    
+    // Show/hide warning for already-paid users
+    const warning = document.getElementById('payPaidWarning');
+    const btn = document.getElementById('confirmSendPaymentBtn');
+    if (isPaid) {
+        warning.style.display = 'block';
+        btn.className = 'btn btn-warning';
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> Revoke & Send to Payment';
+    } else {
+        warning.style.display = 'none';
+        btn.className = 'btn btn-primary';
+        btn.innerHTML = '<i class="bi bi-send me-1"></i> Send to Payment';
+    }
+    sendPaymentModal.show();
+}
+
+async function confirmSendToPayment() {
+    const btn = document.getElementById('confirmSendPaymentBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+
+    try {
+        const response = await fetch('../api/admin/users_management.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'send_to_payment',
+                user_id: currentUserId
+            })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            sendPaymentModal.hide();
+            await loadUsers();
+            showToast.success(result.message);
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        alert('Server error');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send me-1"></i> Send to Payment';
+    }
 }
 
 function openAdjustModal(userId, userName, points) {

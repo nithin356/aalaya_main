@@ -165,6 +165,59 @@ function handlePost($pdo) {
         $pdo->commit();
 
         echo json_encode(['success' => true, 'message' => "Points {$type}ed successfully"]);
+    } elseif ($action === 'send_to_payment') {
+        $user_id = intval($input['user_id'] ?? 0);
+        if (!$user_id) {
+            echo json_encode(['success' => false, 'message' => 'User ID required']);
+            exit;
+        }
+
+        // Check user exists
+        $stmt = $pdo->prepare("SELECT id, full_name FROM users WHERE id = ? AND is_deleted = 0");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
+        if (!$user) {
+            echo json_encode(['success' => false, 'message' => 'User not found']);
+            exit;
+        }
+
+        // Get registration fee from system_config
+        $feeStmt = $pdo->query("SELECT config_value FROM system_config WHERE config_key = 'registration_fee'");
+        $reg_fee = $feeStmt->fetchColumn();
+        $reg_fee = ($reg_fee === false || floatval($reg_fee) <= 0) ? 1111.00 : floatval($reg_fee);
+
+        $was_paid = false;
+
+        // Check if user has ANY existing registration invoice (including paid)
+        $stmt = $pdo->prepare("SELECT id, status, payment_method FROM invoices WHERE user_id = ? AND description IN ('Registration Fee', 'Subscription Fee') ORDER BY id DESC LIMIT 1");
+        $stmt->execute([$user_id]);
+        $existingInvoice = $stmt->fetch();
+
+        if ($existingInvoice) {
+            $was_paid = ($existingInvoice['status'] === 'paid');
+            // Reset existing invoice to pending — clear old payment data
+            $stmt = $pdo->prepare("UPDATE invoices SET status = 'pending', payment_id = NULL, payment_method = 'cashfree', admin_comment = NULL, screenshot_path = NULL, utr_number = NULL, amount = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$reg_fee, $existingInvoice['id']]);
+            $invoice_id = $existingInvoice['id'];
+
+            // If was previously paid (manual approval), also reset user points that were awarded
+            if ($was_paid) {
+                // Deduct the registration fee points that were credited
+                $pdo->prepare("UPDATE users SET total_points = GREATEST(total_points - ?, 0) WHERE id = ?")->execute([$reg_fee, $user_id]);
+            }
+        } else {
+            // Create new pending invoice
+            $stmt = $pdo->prepare("INSERT INTO invoices (user_id, amount, description, status, payment_method, created_at, updated_at) VALUES (?, ?, 'Registration Fee', 'pending', 'cashfree', NOW(), NOW())");
+            $stmt->execute([$user_id, $reg_fee]);
+            $invoice_id = $pdo->lastInsertId();
+        }
+
+        $extra = $was_paid ? ' (Previous manual approval has been revoked.)' : '';
+
+        echo json_encode([
+            'success' => true,
+            'message' => "User '{$user['full_name']}' has been sent to payment stage (Invoice #{$invoice_id}, ₹" . number_format($reg_fee, 2) . ").{$extra} They will see the payment gateway on next login."
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
