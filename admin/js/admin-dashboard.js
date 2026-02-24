@@ -30,10 +30,10 @@ function updateStats(stats) {
     document.getElementById('statEnquiries').textContent = stats.pending_enquiries;
     document.getElementById('statIncome').textContent = '₹' + parseFloat(stats.total_investments || 0).toLocaleString();
     
-    // Update Total Points if element exists
+    // Update Total Subscription Amount if element exists
     const statPoints = document.getElementById('statPoints');
     if (statPoints) {
-        statPoints.textContent = parseFloat(stats.total_points || 0).toLocaleString();
+        statPoints.textContent = '₹' + parseFloat(stats.total_points || 0).toLocaleString();
     }
 }
 

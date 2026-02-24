@@ -57,12 +57,12 @@ require_once 'includes/header.php';
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(249, 105, 170, 0.1); color: #F969AA;">
-            <i class="bi bi-coin"></i>
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+            <i class="bi bi-currency-rupee"></i>
         </div>
         <div class="stat-info">
-            <span class="label">AALAYA POINTS</span>
-            <span class="value" id="statPoints">0</span>
+            <span class="label">Total Subscription</span>
+            <span class="value" id="statPoints">₹0</span>
         </div>
     </div>
 </div>

@@ -57,9 +57,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
+                <a href="payment_verifications.php" class="nav-link <?php echo $current_page == 'payment_verifications.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Payment Verifications</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="network.php" class="nav-link <?php echo $current_page == 'network.php' ? 'active' : ''; ?>">
                     <i class="bi bi-diagram-3"></i>
                     <span>Network</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="investments.php" class="nav-link <?php echo $current_page == 'investments.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Investments</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -87,12 +99,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
-                <a href="investments.php" class="nav-link <?php echo $current_page == 'investments.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Investments</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a href="invoices-registration.php" class="nav-link <?php echo $current_page == 'invoices-registration.php' ? 'active' : ''; ?>">
                     <i class="bi bi-receipt"></i>
                     <span>Registration Invoices</span>
@@ -102,12 +108,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="invoices-investment.php" class="nav-link <?php echo $current_page == 'invoices-investment.php' ? 'active' : ''; ?>">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Investment Invoices</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="payment_verifications.php" class="nav-link <?php echo $current_page == 'payment_verifications.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Payment Verifications</span>
                 </a>
             </li>
             <li class="nav-item">
