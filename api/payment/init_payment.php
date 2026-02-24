@@ -43,6 +43,10 @@ $service = new CashfreeService();
 $result = $service->createOrder($orderId, $amount, 'CUST_' . $user_id, $phone, $email, $returnUrl);
 
 if (isset($result['payment_session_id'])) {
+    // Save the order ID immediately so we can reconcile later even if callback never fires
+    $updateStmt = $pdo->prepare("UPDATE invoices SET payment_id = ?, payment_method = 'cashfree', updated_at = NOW() WHERE id = ? AND status = 'pending'");
+    $updateStmt->execute([$orderId, $invoice_id]);
+
     echo json_encode(['success' => true, 'payment_session_id' => $result['payment_session_id']]);
 } elseif (isset($result['payment_link'])) {
     // Fallback if older API used

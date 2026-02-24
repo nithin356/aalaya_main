@@ -88,6 +88,20 @@ class CashfreeService {
     public function createOrder($orderId, $amount, $customerId, $customerPhone, $customerEmail, $returnUrl) {
         $url = $this->paymentBaseUrl . '/pg/orders';
         
+        // Build notify_url for server-to-server webhook
+        $notifyUrl = '';
+        $configPath = __DIR__ . '/../../config/config.prod.ini';
+        if (file_exists(__DIR__ . '/../../config/config.ini')) {
+            $configPath = __DIR__ . '/../../config/config.ini';
+        }
+        if (file_exists($configPath)) {
+            $config = parse_ini_file($configPath, true);
+            $baseUrl = rtrim($config['paths']['base_url'] ?? '', '/');
+            if ($baseUrl) {
+                $notifyUrl = $baseUrl . '/api/payment/cashfree_webhook.php';
+            }
+        }
+
         $data = [
             'order_id' => $orderId,
             'order_amount' => $amount,
@@ -101,6 +115,11 @@ class CashfreeService {
                 'return_url' => $returnUrl
             ]
         ];
+
+        // Add webhook notify_url if configured
+        if ($notifyUrl) {
+            $data['order_meta']['notify_url'] = $notifyUrl;
+        }
 
         return $this->makeRequest($url, $data, 'POST', 'PAYMENT', '2022-09-01');
     }

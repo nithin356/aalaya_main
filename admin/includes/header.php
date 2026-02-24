@@ -57,6 +57,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
+                <a href="user_audit.php" class="nav-link <?php echo $current_page == 'user_audit.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-person-check"></i>
+                    <span>User Audit</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="properties.php" class="nav-link <?php echo $current_page == 'properties.php' ? 'active' : ''; ?>">
                     <i class="bi bi-building-fill"></i>
                     <span>Properties</span>

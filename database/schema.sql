@@ -154,6 +154,26 @@ CREATE TABLE IF NOT EXISTS system_config (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- 10. invoice_audit_log (Tracks all approve/reject/reconcile actions)
+CREATE TABLE IF NOT EXISTS invoice_audit_log (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    invoice_id INT NOT NULL,
+    user_id INT NOT NULL,
+    admin_user VARCHAR(100) DEFAULT 'system',
+    action ENUM('approved', 'rejected', 'reconciled', 'webhook_confirmed', 'status_change') NOT NULL,
+    old_status VARCHAR(30),
+    new_status VARCHAR(30),
+    reason TEXT DEFAULT NULL,
+    payment_id VARCHAR(100) DEFAULT NULL,
+    payment_method VARCHAR(50) DEFAULT NULL,
+    manual_utr_id VARCHAR(100) DEFAULT NULL,
+    amount DECIMAL(10,2) DEFAULT NULL,
+    extra_data JSON DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_invoice_id (invoice_id),
+    INDEX idx_user_id (user_id)
+);
+
 -- Insert default referral configuration
 INSERT INTO system_config (config_key, config_value, description) VALUES
 ('referral_level1_percentage', '20', 'Level 1 referral percentage'),

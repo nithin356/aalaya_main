@@ -32,8 +32,8 @@ if ($action === 'reject' && empty($admin_comment)) {
 try {
     $pdo->beginTransaction();
 
-    // 1. Fetch invoice
-    $stmt = $pdo->prepare("SELECT * FROM invoices WHERE id = ? AND status = 'pending_verification'");
+    // 1. Fetch invoice with user info
+    $stmt = $pdo->prepare("SELECT i.*, u.full_name FROM invoices i JOIN users u ON i.user_id = u.id WHERE i.id = ? AND i.status = 'pending_verification'");
     $stmt->execute([$invoice_id]);
     $invoice = $stmt->fetch();
 
@@ -42,6 +42,8 @@ try {
         echo json_encode(['success' => false, 'message' => 'Invoice not found or not in pending verification status.']);
         exit;
     }
+
+    $adminName = $_SESSION['admin_full_name'] ?? $_SESSION['admin_username'] ?? 'admin';
 
     if ($action === 'approve') {
         // 2. Mark Paid - Preserve existing payment_method if already set (e.g. 'cashfree')
@@ -62,15 +64,52 @@ try {
             $stmt = $pdo->prepare("INSERT INTO referral_transactions (user_id, referred_user_id, level, points_earned, percentage, transaction_type) VALUES (?, ?, 0, ?, 100, 'subscription_reward')");
             $stmt->execute([$user_id, $user_id, $amount]);
         }
+
+        // 4. Log to audit trail
+        $stmt = $pdo->prepare("
+            INSERT INTO invoice_audit_log 
+            (invoice_id, user_id, admin_user, action, old_status, new_status, reason, payment_id, payment_method, manual_utr_id, amount)
+            VALUES (?, ?, ?, 'approved', 'pending_verification', 'paid', ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $invoice_id,
+            $invoice['user_id'],
+            $adminName,
+            $admin_comment ?: 'Payment approved',
+            $invoice['payment_id'],
+            $payment_method,
+            $invoice['manual_utr_id'],
+            $invoice['amount']
+        ]);
         
         $message = 'Payment approved and registration completed.';
     } else {
-        // Reject - revert to pending or mark as cancelled? 
-        // Let's mark as pending so user can re-submit if they made a typo, or cancelled if fraudulent.
-        // User said "confirm user has paid... once done he will able to login".
-        // If rejected, maybe we should let them try again.
+        // Reject — revert to pending so user can re-submit
+        // IMPORTANT: Keep payment_id for audit trail, only clear UTR and screenshot
         $stmt = $pdo->prepare("UPDATE invoices SET status='pending', manual_utr_id=NULL, manual_payment_screenshot=NULL, admin_comment=?, updated_at=NOW() WHERE id=?");
         $stmt->execute([$admin_comment, $invoice_id]);
+
+        // Log rejection to audit trail — preserve ALL original data before clearing
+        $stmt = $pdo->prepare("
+            INSERT INTO invoice_audit_log 
+            (invoice_id, user_id, admin_user, action, old_status, new_status, reason, payment_id, payment_method, manual_utr_id, amount, extra_data)
+            VALUES (?, ?, ?, 'rejected', 'pending_verification', 'pending', ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $invoice_id,
+            $invoice['user_id'],
+            $adminName,
+            $admin_comment,
+            $invoice['payment_id'],
+            $invoice['payment_method'],
+            $invoice['manual_utr_id'],
+            $invoice['amount'],
+            json_encode([
+                'original_screenshot' => $invoice['manual_payment_screenshot'],
+                'rejected_at' => date('Y-m-d H:i:s')
+            ])
+        ]);
+
         $message = 'Payment rejected. Reason: ' . $admin_comment;
     }
 

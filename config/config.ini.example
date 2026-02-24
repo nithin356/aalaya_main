@@ -32,6 +32,9 @@ verification_client_secret = YOUR_PROD_VERIFICATION_SECRET
 payment_client_id = YOUR_PROD_PAYMENT_ID
 payment_client_secret = YOUR_PROD_PAYMENT_SECRET
 
+; Webhook secret (get from Cashfree Dashboard → Settings → Webhooks)
+webhook_secret = YOUR_WEBHOOK_SECRET
+
 mode = PROD
 verification_mode = PROD
 payment_mode = PROD
