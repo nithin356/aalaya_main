@@ -15,7 +15,7 @@ if (!$invoice) {
 
 $is_gateway_registration_flow = true;
 $show_gateway_payment = true;
-$show_manual_payment = false;
+$show_manual_payment = true;
 
 // Load Cashfree Mode
 $config = parse_ini_file('../config/config.ini', true);
@@ -104,6 +104,33 @@ $sdk_mode = ($cashfree_mode === 'prod' || $cashfree_mode === 'production') ? 'pr
                     <button type="button" id="payGatewayBtn" class="btn btn-success w-100 py-3 fw-bold fs-6 shadow-sm">
                         <i class="bi bi-credit-card-2-front me-2"></i> Pay via Secure Gateway
                     </button>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($show_manual_payment): ?>
+                <div class="text-center text-muted small mb-3">or</div>
+                <div class="p-3 border rounded bg-white mb-3">
+                    <div class="text-center mb-3">
+                        <div class="fw-bold mb-1">Pay via UPI (Manual)</div>
+                        <div class="text-muted small">Scan the QR and transfer the exact amount.</div>
+                        <img src="../assets/images/qr_payment.png" alt="UPI QR" class="img-fluid border rounded mt-2" style="max-width: 220px;">
+                    </div>
+                    <form id="manualPaymentForm" enctype="multipart/form-data">
+                        <input type="hidden" name="invoice_id" value="<?php echo (int)$invoice_id; ?>">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">UTR / Reference ID <span class="text-danger">*</span></label>
+                            <input type="text" name="utr_id" class="form-control" required maxlength="100" placeholder="Enter UTR or reference number">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Payment Screenshot (optional)</label>
+                            <input type="file" name="payment_screenshot" id="screenshotInput" class="form-control" accept="image/png, image/jpeg">
+                            <small class="text-muted">JPG or PNG. Max 5 MB recommended.</small>
+                        </div>
+                        <div id="previewContainer" class="mb-3" style="display:none;">
+                            <img id="screenshotPreview" class="img-fluid rounded border" style="max-height: 220px; object-fit: contain;" alt="Payment screenshot preview">
+                        </div>
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 fw-bold">Submit for Verification</button>
+                    </form>
                 </div>
             <?php endif; ?>
         </div>

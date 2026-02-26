@@ -54,7 +54,7 @@ try {
     $paymentMethod = strtolower($paidInvoice['payment_method'] ?? '');
     $isGatewayUser = in_array($paymentMethod, ['cashfree', 'gateway'], true);
     $_SESSION['user_payment_tag'] = $isGatewayUser ? 'Gateway User' : 'Standard User';
-    $_SESSION['hide_network_tab'] = $isGatewayUser;
+    $_SESSION['hide_network_tab'] = false;
 
     echo json_encode(['success' => true, 'message' => 'Login successful!']);
 

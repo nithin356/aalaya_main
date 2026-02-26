@@ -26,8 +26,11 @@ if (!isset($_SESSION['user_payment_tag']) || !isset($_SESSION['hide_network_tab'
     $isGatewayUser = in_array($paymentMethod, ['cashfree', 'gateway'], true);
 
     $_SESSION['user_payment_tag'] = $isGatewayUser ? 'Gateway User' : 'Standard User';
-    $_SESSION['hide_network_tab'] = $isGatewayUser;
+    $_SESSION['hide_network_tab'] = false;
 }
+
+// Always show Network tab for paid users regardless of payment method.
+$_SESSION['hide_network_tab'] = false;
 
 // Check for mandatory pending payment or verification
 $stmt = $pdo->prepare("SELECT id, status, admin_comment FROM invoices WHERE user_id = ? AND status IN ('pending', 'pending_verification') AND (description = 'Registration Fee' OR description = 'Subscription Fee') ORDER BY created_at DESC LIMIT 1");

@@ -22,6 +22,11 @@ if (!$invoice_id) {
     exit;
 }
 
+if ($utr_id === '') {
+    echo json_encode(['success' => false, 'message' => 'UTR / Reference ID is required.']);
+    exit;
+}
+
 try {
     // 1. Verify invoice belongs to user and is pending
     $stmt = $pdo->prepare("SELECT id FROM invoices WHERE id = ? AND user_id = ? AND status = 'pending'");

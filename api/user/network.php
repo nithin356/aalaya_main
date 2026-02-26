@@ -9,10 +9,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!empty($_SESSION['hide_network_tab'])) {
-    echo json_encode(['success' => false, 'message' => 'Network section is unavailable for this account type.']);
-    exit;
-}
 
 $user_id = $_SESSION['user_id'];
 $pdo = getDB();
