@@ -9,13 +9,15 @@ define('CONFIG_FILE', BASE_PATH . '/config/config.ini');
 
 // Read config.ini
 if (!file_exists(CONFIG_FILE)) {
-    die("Configuration file not found at " . CONFIG_FILE);
+    header('Content-Type: application/json');
+    die(json_encode(['success' => false, 'message' => 'Server configuration error. Contact administrator.']));
 }
 
 $config = parse_ini_file(CONFIG_FILE, true);
 
 if (!$config) {
-    die("Error parsing configuration file.");
+    header('Content-Type: application/json');
+    die(json_encode(['success' => false, 'message' => 'Server configuration error. Contact administrator.']));
 }
 
 // Database credentials
