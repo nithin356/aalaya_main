@@ -69,6 +69,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
+                <a href="referrals.php" class="nav-link <?php echo $current_page == 'referrals.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-person-lines-fill"></i>
+                    <span>Referrals</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="investments.php" class="nav-link <?php echo $current_page == 'investments.php' ? 'active' : ''; ?>">
                     <i class="bi bi-graph-up-arrow"></i>
                     <span>Investments</span>
