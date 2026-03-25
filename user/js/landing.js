@@ -712,45 +712,65 @@ function renderNetwork(data) {
   const content = document.getElementById("landingContent");
   content.innerHTML = `
         <div class="col-12">
-            <div class="data-card p-4" style="border-radius: 24px; background: linear-gradient(135deg, #F969AA, #BD2D6B); color: white; border: none; box-shadow: 0 20px 40px rgba(217, 69, 137, 0.4);">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h2 class="mb-1" style="font-weight: 800;">My Referral Network</h2>
-                        <p class="opacity-75 mb-0">You have referred <strong>${data.referrals_count}</strong> active members.</p>
-                        <p class="opacity-75 small">Your Referral Code: <strong>${data.referral_code}</strong></p>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <button class="btn btn-light rounded-pill px-4 fw-bold" onclick="showUserRegisterModal('${data.referral_code}')">
-                            <i class="bi bi-person-plus-fill me-2"></i> Register Member
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-6 mt-5">
-            <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-wallet2 text-primary" style="font-size: 1.2rem;"></i>
-            <span>AALAYA POINTS</span>
-            </h4>
-            <div class="data-card p-4 text-center" style="border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); background: #141417;">
-                <div class="mb-1">
-                    <span class="text-white opacity-50 fw-bold text-uppercase small" style="letter-spacing: 0.1em;">Aalaya Points</span>
-                </div>
-                <h1 class="display-4 fw-bold mb-0 d-block lotus-gradient-text">${parseFloat(data.total_points || 0).toLocaleString()}</h1>
-            <p class="mt-3 text-white-50 small">AALAYA POINTS are updated in real-time.</p>
+          <!-- Top stats row -->
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
+            <!-- Points -->
+            <div style="background:#141417; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px 18px;">
+              <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.35); font-weight:600; margin-bottom:4px;">Aalaya Points</div>
+              <div class="lotus-gradient-text" style="font-size:1.5rem; font-weight:800; line-height:1;">${parseFloat(data.total_points || 0).toLocaleString()}</div>
             </div>
-        </div>
+            <!-- Members -->
+            <div style="background:#141417; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px 18px;">
+              <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.35); font-weight:600; margin-bottom:4px;">Members</div>
+              <div style="font-size:1.5rem; font-weight:800; color:#fff; line-height:1;">${data.referrals_count}</div>
+            </div>
+            <!-- Referral code -->
+            <div style="background:#141417; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px 18px;">
+              <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.35); font-weight:600; margin-bottom:4px;">Your Code</div>
+              <div style="font-size:1rem; font-weight:700; color:#F969AA; letter-spacing:0.05em; line-height:1.2;">${data.referral_code}</div>
+            </div>
+          </div>
 
-        <div class="col-md-6 mt-5">
-          <h4 class="mb-4 fw-bold d-flex align-items-center gap-2">
-            <i class="bi bi-info-circle text-primary" style="font-size: 1.2rem;"></i>
-            <span>Overview</span>
-          </h4>
-          <div class="data-card p-4" style="border-radius: 24px; background: #141417; border: 1px solid rgba(255, 255, 255, 0.05);">
-            <p style="display:none;" class="mb-2 text-white-50">Transaction and referral tables are currently hidden.</p>
-            <p class="mb-0 text-white">Registered members: <strong>${data.referrals_count}</strong></p>
+          <!-- Invite link button -->
+          <button onclick="getInviteLink()" style="width:100%; background:linear-gradient(135deg,#F969AA,#BD2D6B); border:none; border-radius:14px; padding:14px; color:#fff; font-weight:700; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:20px; box-shadow:0 8px 24px rgba(217,69,137,0.3); letter-spacing:0.02em;">
+            <i class="bi bi-link-45deg" style="font-size:1.1rem;"></i> Get Invite Link
+          </button>
+
+          <!-- Members section -->
+          <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); font-weight:600; margin-bottom:10px;">
+            Referred Members
+          </div>
+
+          ${data.network && data.network.length > 0 ? data.network.map((m) => `
+            <div style="background:#141417; border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
+              <!-- Avatar -->
+              <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#F969AA,#BD2D6B); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.95rem; color:#fff; flex-shrink:0;">
+                ${(m.full_name || '?').charAt(0).toUpperCase()}
+              </div>
+              <!-- Info -->
+              <div style="flex:1; min-width:0;">
+                <div style="color:#fff; font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.full_name || '—'}</div>
+                <div style="color:rgba(255,255,255,0.35); font-size:0.75rem; margin-top:2px;">
+                  <i class="bi bi-calendar3" style="margin-right:4px;"></i>${new Date(m.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
+                </div>
+              </div>
+              <!-- Status -->
+              <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; flex-shrink:0;
+                background:${m.status === 'active' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.1)'};
+                color:${m.status === 'active' ? '#22c55e' : '#facc15'};
+                border:1px solid ${m.status === 'active' ? 'rgba(34,197,94,0.25)' : 'rgba(234,179,8,0.2)'};">
+                <span style="width:5px; height:5px; border-radius:50%; background:currentColor; display:inline-block;"></span>
+                ${m.status === 'active' ? 'Active' : 'Pending'}
+              </span>
             </div>
+          `).join('') : `
+            <div style="background:#141417; border:1px dashed rgba(255,255,255,0.07); border-radius:14px; padding:36px 20px; text-align:center;">
+              <i class="bi bi-send" style="font-size:2rem; color:rgba(249,105,170,0.25); display:block; margin-bottom:10px;"></i>
+              <p style="color:rgba(255,255,255,0.3); font-size:0.85rem; margin:0; line-height:1.5;">No members yet.<br>Share your invite link to get started.</p>
+            </div>
+          `}
+
         </div>
     `;
 }
@@ -900,6 +920,57 @@ window.showRegisterModal = function () {
 
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
+};
+
+window.getInviteLink = async function () {
+  try {
+    const res  = await fetch('../api/user/generate_invite_link.php');
+    const data = await res.json();
+    if (!data.success) { alert('Could not generate invite link: ' + data.message); return; }
+
+    const link = data.link;
+
+    // Build a simple modal to show + copy the link
+    let modal = document.getElementById('inviteLinkModal');
+    if (!modal) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal fade" id="inviteLinkModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#1a1a1f; border:1px solid rgba(255,255,255,0.08); border-radius:20px; color:#fff;">
+              <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                  <i class="bi bi-link-45deg me-2" style="color:#F969AA;"></i>Your Invitation Link
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body pt-3">
+                <p class="text-white-50 small mb-3">Share this link with the person you want to invite. When they register through this link, you will automatically be set as their referrer.</p>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 16px; word-break:break-all; font-size:0.82rem; color:#e0e0e0;" id="inviteLinkText"></div>
+                <button id="copyInviteLinkBtn" class="btn btn-sm mt-3 rounded-pill fw-bold"
+                  style="background:linear-gradient(135deg,#F969AA,#BD2D6B); color:#fff; border:none; padding:8px 22px;">
+                  <i class="bi bi-clipboard me-1"></i> Copy Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`);
+      modal = document.getElementById('inviteLinkModal');
+
+      modal.querySelector('#copyInviteLinkBtn').addEventListener('click', function () {
+        const text = document.getElementById('inviteLinkText').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          this.innerHTML = '<i class="bi bi-clipboard-check me-1"></i> Copied!';
+          setTimeout(() => { this.innerHTML = '<i class="bi bi-clipboard me-1"></i> Copy Link'; }, 2500);
+        });
+      });
+    }
+
+    document.getElementById('inviteLinkText').textContent = link;
+    new bootstrap.Modal(modal).show();
+
+  } catch (err) {
+    alert('Error generating invite link. Please try again.');
+  }
 };
 
 window.showUserRegisterModal = function (referralCode) {
