@@ -236,8 +236,7 @@ function handlePut($pdo) {
     if ($action === 'toggle_ban') {
         $stmt = $pdo->prepare("UPDATE users SET is_banned = 1 - is_banned WHERE id = ?");
         $stmt->execute([$user_id]);
-        
-        // Check if now banned or unbanned
+
         $stmt = $pdo->prepare("SELECT is_banned FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
         $isBanned = $stmt->fetch()['is_banned'];
@@ -246,6 +245,15 @@ function handlePut($pdo) {
             'success' => true,
             'message' => $isBanned ? 'User banned successfully' : 'User unbanned successfully'
         ]);
+    } elseif ($action === 'change_password') {
+        $new_password = $input['new_password'] ?? '';
+        if (strlen($new_password) < 6) {
+            echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters.']);
+            exit;
+        }
+        $hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $pdo->prepare("UPDATE users SET password = ? WHERE id = ?")->execute([$hash, $user_id]);
+        echo json_encode(['success' => true, 'message' => 'Password updated successfully.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
@@ -260,49 +268,10 @@ function handleDelete($pdo) {
         exit;
     }
 
-    $pdo->beginTransaction();
+    // Soft delete — preserve all data, just mark user as deleted and ban to prevent login
+    $pdo->prepare("UPDATE users SET is_deleted = 1, is_banned = 1 WHERE id = ?")
+        ->execute([$user_id]);
 
-    try {
-        // Hard delete — remove all related data
-        
-        // 1. Delete referral transactions
-        $stmt = $pdo->prepare("DELETE FROM referral_transactions WHERE user_id = ? OR referred_user_id = ?");
-        $stmt->execute([$user_id, $user_id]);
-
-        // 2. Delete share transactions
-        $stmt = $pdo->prepare("DELETE FROM share_transactions WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        // 3. Delete invoices
-        $stmt = $pdo->prepare("DELETE FROM invoices WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        // 4. Delete investments
-        $stmt = $pdo->prepare("DELETE FROM investments WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        // 5. Delete bids
-        $stmt = $pdo->prepare("DELETE FROM bids WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        // 6. Delete enquiries
-        $stmt = $pdo->prepare("DELETE FROM enquiries WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        // 7. Clear referred_by references for users who were referred by this user
-        $stmt = $pdo->prepare("UPDATE users SET referred_by = NULL WHERE referred_by = ?");
-        $stmt->execute([$user_id]);
-
-        // 8. Delete the user
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-
-        $pdo->commit();
-
-        echo json_encode(['success' => true, 'message' => 'User deleted permanently with all related data']);
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        throw $e;
-    }
+    echo json_encode(['success' => true, 'message' => 'User deleted. All data has been preserved.']);
 }
 ?>

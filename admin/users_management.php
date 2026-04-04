@@ -214,28 +214,59 @@ require_once 'includes/header.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>You are about to <strong style="color:#ef4444;">permanently delete</strong> this user:</p>
+                <p>You are about to <strong style="color:#ef4444;">delete</strong> this user:</p>
                 <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin: 12px 0;">
                     <strong id="deleteUserName">—</strong><br>
                     <small class="text-muted">ID: <span id="deleteUserId">—</span> | Phone: <span id="deleteUserPhone">—</span></small>
                 </div>
-                <div class="alert alert-danger small mb-0">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    <strong>This action CANNOT be undone.</strong> All user data will be permanently removed:
-                    <ul class="mb-0 mt-2">
-                        <li>Invoices & Payment Records</li>
-                        <li>Referral Transactions</li>
-                        <li>Investments & Shares</li>
-                        <li>Bids & Enquiries</li>
-                        <li>All related records</li>
-                    </ul>
+                <div class="alert alert-warning small mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    The user will be <strong>deactivated and blocked</strong> from logging in. All data (invoices, investments, referrals, shares) is <strong>preserved</strong> in the database.
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">
-                    <i class="bi bi-trash me-1"></i> Delete Permanently
+                    <i class="bi bi-trash me-1"></i> Delete User
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-key-fill me-2"></i>Change User Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Changing password for: <strong id="cpUserNameUM"></strong></p>
+                <input type="hidden" id="cpUserIdUM">
+                <div class="mb-3">
+                    <label class="form-label">New Password <span class="text-danger">*</span></label>
+                    <div style="position:relative;">
+                        <input type="password" id="cpNewPasswordUM" class="form-input" placeholder="Min 6 characters" style="padding-right:42px;">
+                        <button type="button" onclick="togglePw('cpNewPasswordUM', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                    <div style="position:relative;">
+                        <input type="password" id="cpConfirmPasswordUM" class="form-input" placeholder="Repeat password" style="padding-right:42px;">
+                        <button type="button" onclick="togglePw('cpConfirmPasswordUM', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-primary px-4" onclick="submitChangePasswordUM()">Update Password</button>
             </div>
         </div>
     </div>
@@ -246,12 +277,13 @@ require_once 'includes/header.php';
 <script>
 let currentUserId = null;
 let currentUserAction = null;
-let banModal, deleteModal, adjustModal, sendPaymentModal;
+let banModal, deleteModal, adjustModal, sendPaymentModal, changePasswordModal;
 
 document.addEventListener('DOMContentLoaded', function() {
-    banModal = new bootstrap.Modal(document.getElementById('banModal'));
-    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    adjustModal = new bootstrap.Modal(document.getElementById('adjustPointsModal'));
+    banModal            = new bootstrap.Modal(document.getElementById('banModal'));
+    deleteModal         = new bootstrap.Modal(document.getElementById('deleteModal'));
+    adjustModal         = new bootstrap.Modal(document.getElementById('adjustPointsModal'));
+    changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
     sendPaymentModal = new bootstrap.Modal(document.getElementById('sendPaymentModal'));
     
     document.getElementById('adjustPointsForm').addEventListener('submit', async function(e) {
@@ -341,6 +373,9 @@ function renderUsers(data) {
                 </button>
                 <button class="btn btn-outline-secondary" onclick="openAdjustModal(${user.id}, '${user.full_name}', ${user.total_points})" title="Adjust Points">
                     <i class="bi bi-plus-circle"></i>
+                </button>
+                <button class="btn btn-outline-info" onclick="openChangePasswordModal(${user.id}, '${safeName}')" title="Change Password">
+                    <i class="bi bi-key"></i>
                 </button>
                 <button class="btn btn-outline-${user.is_banned ? 'warning' : 'danger'}" onclick="openBanModal(${user.id}, '${safeName}', '${user.phone}', ${user.is_banned})" title="${user.is_banned ? 'Unban' : 'Ban'}">
                     <i class="bi bi-${user.is_banned ? 'arrow-counterclockwise' : 'lock'}"></i>
@@ -532,6 +567,50 @@ async function confirmBan() {
         }
     } catch (error) {
         alert('Server error');
+    }
+}
+
+function togglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+function openChangePasswordModal(userId, userName) {
+    document.getElementById('cpUserIdUM').value = userId;
+    document.getElementById('cpUserNameUM').textContent = userName;
+    document.getElementById('cpNewPasswordUM').value = '';
+    document.getElementById('cpConfirmPasswordUM').value = '';
+    changePasswordModal.show();
+}
+
+async function submitChangePasswordUM() {
+    const userId   = document.getElementById('cpUserIdUM').value;
+    const password = document.getElementById('cpNewPasswordUM').value.trim();
+    const confirm  = document.getElementById('cpConfirmPasswordUM').value.trim();
+    if (password.length < 6) { showToast.error('Password must be at least 6 characters.'); return; }
+    if (password !== confirm) { showToast.error('Passwords do not match.'); return; }
+    try {
+        const res  = await fetch('../api/admin/users_management.php', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'change_password', user_id: parseInt(userId), new_password: password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast.success(data.message);
+            changePasswordModal.hide();
+        } else {
+            showToast.error(data.message);
+        }
+    } catch (e) {
+        showToast.error('Server error. Please try again.');
     }
 }
 

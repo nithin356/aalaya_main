@@ -94,9 +94,20 @@ function renderOrgChart($nodes, $isRoot = false) {
 .org-container {
     background: var(--card-bg);
     border-radius: 20px;
-    padding: 40px 20px;
     border: 1px solid var(--border);
-    overflow-x: auto;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+    height: 70vh;
+    user-select: none;
+}
+.org-container.dragging { cursor: grabbing; }
+.org-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    padding: 40px 20px;
+    transform-origin: 0 0;
+    will-change: transform;
 }
 
 /* ========== ORG CHART TREE ========== */
@@ -374,8 +385,18 @@ function renderOrgChart($nodes, $isRoot = false) {
     </div>
 </div>
 
-<div class="org-container">
-    <div class="org-tree">
+<!-- Zoom + Pan Controls -->
+<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+    <button onclick="zoomTree(-0.1)" class="btn btn-sm btn-secondary"><i class="bi bi-zoom-out"></i> Zoom Out</button>
+    <button onclick="zoomTree(0.1)"  class="btn btn-sm btn-secondary"><i class="bi bi-zoom-in"></i> Zoom In</button>
+    <button onclick="resetView()"    class="btn btn-sm btn-outline-secondary"><i class="bi bi-fullscreen-exit"></i> Reset</button>
+    <span id="zoomLabel" style="font-size:0.8rem; color:var(--text-muted);">100%</span>
+    <span style="font-size:0.78rem; color:var(--text-muted); margin-left:8px;"><i class="bi bi-hand-index"></i> Drag to pan</span>
+</div>
+
+<div class="org-container" id="orgContainer">
+    <div class="org-canvas" id="orgCanvas">
+    <div class="org-tree" id="orgTree">
         <!-- Root Node -->
         <div class="org-root">
             <div class="org-root-card">
@@ -388,10 +409,11 @@ function renderOrgChart($nodes, $isRoot = false) {
                 </div>
             </div>
         </div>
-        
+
         <!-- User Hierarchy -->
         <?php renderOrgChart($tree, true); ?>
     </div>
+    </div><!-- /org-canvas -->
 </div>
 
 <!-- Register User Modal -->
@@ -445,14 +467,74 @@ function renderOrgChart($nodes, $isRoot = false) {
     </div>
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ---- Pan + Zoom ----
+const container = document.getElementById('orgContainer');
+const canvas    = document.getElementById('orgCanvas');
+let scale = 1, panX = 0, panY = 0;
+let dragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+function applyTransform() {
+    canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomTree(delta) {
+    scale = Math.min(2, Math.max(0.2, scale + delta));
+    applyTransform();
+}
+
+function resetView() {
+    scale = 1; panX = 0; panY = 0;
+    applyTransform();
+}
+
+// Mouse drag
+container.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startPanX = panX;   startPanY = panY;
+    container.classList.add('dragging');
+});
+window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    applyTransform();
+});
+window.addEventListener('mouseup', () => {
+    dragging = false;
+    container.classList.remove('dragging');
+});
+
+// Touch drag
+container.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    dragging = true;
+    startX = t.clientX; startY = t.clientY;
+    startPanX = panX;   startPanY = panY;
+}, { passive: true });
+container.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    panX = startPanX + (t.clientX - startX);
+    panY = startPanY + (t.clientY - startY);
+    applyTransform();
+}, { passive: true });
+container.addEventListener('touchend', () => { dragging = false; });
+
+// Scroll to zoom
+container.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomTree(e.deltaY < 0 ? 0.05 : -0.05);
+}, { passive: false });
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Move modal to body to prevent layout clipping
-    const modalEl = document.getElementById('registerUserModal');
-    if (modalEl && modalEl.parentNode !== document.body) {
-        document.body.appendChild(modalEl);
-    }
+    const el = document.getElementById('registerUserModal');
+    if (el && el.parentNode !== document.body) document.body.appendChild(el);
 });
 
 function showRegisterModal() {
