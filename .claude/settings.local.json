@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -h aalaya.info -u aalaya_db1 -paalaya_db1 aalaya_db -e ':*)",
+      "Bash(c:/xampp/mysql/bin/mysql -h aalaya.info -u aalaya_db1 -paalaya_db1 aalaya_db -e ':*)",
+      "Bash(c:/xampp/mysql/bin/mysql -h aalaya.info -u aalaya_db1 -paalaya_db1 aalaya_db -e \"SHOW COLUMNS FROM share_transactions;\")"
+    ]
+  }
+}

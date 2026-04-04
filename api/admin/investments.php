@@ -99,19 +99,31 @@ try {
 
         $pdo->beginTransaction();
 
-        // 1. Insert Investment Record (investor gets 0 points from investment itself)
+        // 1. Insert Investment Record
         $stmt = $pdo->prepare("INSERT INTO investments (user_id, amount, points_earned, admin_id) VALUES (?, ?, 0, ?)");
         $stmt->execute([$user_id, $amount, $admin_id]);
         $investment_id = $pdo->lastInsertId();
 
-        // 2. Update Investor's total points and check for shares
-        $sharesEarnedByInvestor = processRewardsForUser($pdo, $user_id, $amount, $shareThreshold, 'investment');
+        // 2. Update total_investment_amount and calculate investment_shares directly
+        //    Investment is INDEPENDENT of points — never touches total_points
+        $stmt2 = $pdo->prepare("SELECT total_investment_amount, investment_shares FROM users WHERE id = ?");
+        $stmt2->execute([$user_id]);
+        $inv = $stmt2->fetch(PDO::FETCH_ASSOC);
 
-        // 3. Update total investment amount (historical tracking)
-        $stmt2 = $pdo->prepare("UPDATE users SET total_investment_amount = total_investment_amount + ? WHERE id = ?");
-        $stmt2->execute([$amount, $user_id]);
+        $newTotalInvestment  = floatval($inv['total_investment_amount']) + $amount;
+        $newInvestmentShares = ($shareThreshold > 0) ? (int) floor($newTotalInvestment / $shareThreshold) : 0;
+        $sharesEarnedByInvestor = $newInvestmentShares - (int) $inv['investment_shares'];
 
-        // 4. If investor earned shares, distribute flat commission to referrers
+        $pdo->prepare("UPDATE users SET total_investment_amount = ?, investment_shares = ? WHERE id = ?")
+            ->execute([$newTotalInvestment, $newInvestmentShares, $user_id]);
+
+        // Log share transaction if new shares earned
+        if ($sharesEarnedByInvestor > 0) {
+            $pdo->prepare("INSERT INTO share_transactions (user_id, shares_added, reason) VALUES (?, ?, ?)")
+                ->execute([$user_id, $sharesEarnedByInvestor, "Investment shares: total investment ₹" . number_format($newTotalInvestment, 2)]);
+        }
+
+        // 3. If investor earned investment shares, distribute flat point commissions to referrers
         if ($sharesEarnedByInvestor > 0) {
             $rewards = [];
             

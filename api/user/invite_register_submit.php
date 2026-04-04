@@ -1,17 +1,14 @@
 <?php
 /**
  * Invite-Based Registration API
- * Called from invite_register.php after PAN verification.
- * The invite token encodes the referrer's referral_code.
+ * Identity (Aadhaar, PAN, Name, DOB, Gender, Address) comes from
+ * $_SESSION['digi_verified'] set by digilocker_invite_callback.php.
  *
  * POST fields:
- *   invite_token  - encrypted token from URL
- *   full_name     - as verified by PAN
- *   pan_number    - verified PAN
- *   dob           - date of birth
- *   phone         - 10-digit mobile
- *   email         - email address
- *   password      - min 6 chars
+ *   invite_token      - encrypted invite token
+ *   phone             - 10-digit mobile
+ *   email             - email address
+ *   password          - min 6 chars
  *   confirm_password
  */
 header('Content-Type: application/json');
@@ -28,18 +25,29 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pdo = getDB();
 
 try {
-    // --- Inputs ---
-    $invite_token     = trim($_POST['invite_token'] ?? '');
-    $full_name        = trim($_POST['full_name'] ?? '');
-    $pan_number       = strtoupper(trim($_POST['pan_number'] ?? ''));
-    $dob              = trim($_POST['dob'] ?? '');
-    $phone            = trim($_POST['phone'] ?? '');
-    $email            = trim($_POST['email'] ?? '');
-    $password         = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+    // --- DigiLocker verified identity (must be in session) ---
+    $digi = $_SESSION['digi_verified'] ?? null;
+    if (!$digi || empty($digi['name']) || empty($digi['pan_number']) || empty($digi['aadhar_no'])) {
+        throw new Exception('Identity verification not completed. Please verify with DigiLocker first.');
+    }
 
-    // --- Basic validation ---
-    if (!$invite_token || !$full_name || !$pan_number || !$phone || !$email || !$password) {
+    $full_name    = $digi['name'];
+    $pan_number   = strtoupper($digi['pan_number']);
+    $aadhaar      = $digi['aadhar_no'];
+    $dob          = $digi['dob']        ?? '';
+    $gender       = $digi['gender']     ?? '';
+    $address      = $digi['address']    ?? '';
+    $photo        = $digi['photo']      ?? '';
+
+    // --- POST inputs ---
+    $invite_token     = trim($_POST['invite_token']     ?? '');
+    $phone            = trim($_POST['phone']            ?? '');
+    $email            = trim($_POST['email']            ?? '');
+    $password         = $_POST['password']              ?? '';
+    $confirm_password = $_POST['confirm_password']      ?? '';
+
+    // --- Validation ---
+    if (!$invite_token || !$phone || !$email || !$password) {
         throw new Exception('All fields are required.');
     }
 
@@ -57,10 +65,6 @@ try {
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new Exception('Invalid email address.');
-    }
-
-    if (!preg_match('/^[A-Z]{5}[0-9]{4}[A-Z]$/', $pan_number)) {
-        throw new Exception('Invalid PAN format.');
     }
 
     // --- Decode invite token → referrer ---
@@ -81,22 +85,29 @@ try {
 
     // --- Duplicate check ---
     $dupStmt = $pdo->prepare(
-        "SELECT id FROM users WHERE phone = ? OR email = ? OR pan_number = ?"
+        "SELECT id FROM users WHERE phone = ? OR email = ? OR pan_number = ? OR aadhaar_number = ?"
     );
-    $dupStmt->execute([$phone, $email, $pan_number]);
+    $dupStmt->execute([$phone, $email, $pan_number, $aadhaar]);
     if ($dupStmt->fetch()) {
-        throw new Exception('An account with this phone, email, or PAN already exists.');
+        throw new Exception('An account with this phone, email, PAN, or Aadhaar already exists.');
     }
 
     // --- Create account ---
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
     $new_ref_code  = strtoupper(substr(md5(uniqid($full_name . $phone, true)), 0, 8));
 
-    $sql = "INSERT INTO users (full_name, email, phone, password, pan_number, dob, referral_code, referred_by, total_points, digilocker_verified, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, NOW())";
+    $sql = "INSERT INTO users
+                (full_name, email, phone, password, pan_number, aadhaar_number,
+                 dob, gender, address, photo_link,
+                 referral_code, referred_by, total_points,
+                 digilocker_verified, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, NOW())";
+
     $pdo->prepare($sql)->execute([
         $full_name, $email, $phone, $password_hash,
-        $pan_number, $dob, $new_ref_code, $referrer_id,
+        $pan_number, $aadhaar,
+        $dob, $gender, $address, $photo,
+        $new_ref_code, $referrer_id,
     ]);
 
     $user_id = $pdo->lastInsertId();
@@ -113,7 +124,10 @@ try {
 
     $invoice_id = $pdo->lastInsertId();
 
-    // --- Session ---
+    // --- Clear DigiLocker session data ---
+    unset($_SESSION['digi_verified'], $_SESSION['digi_invite_ref']);
+
+    // --- Set login session ---
     $_SESSION['user_id']          = $user_id;
     $_SESSION['user_name']        = $full_name;
     $_SESSION['is_logged_in']     = true;

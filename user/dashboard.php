@@ -81,7 +81,7 @@ $show_payment_block = !empty($pending_registration_invoice);
             <?php if (empty($_SESSION['hide_network_tab'])): ?>
             <div class="category-tab" data-target="my-network">
                 <i class="bi bi-person mobile-icon"></i>
-                <span>Network</span>
+                <span>Referral</span>
             </div>
             <?php endif; ?>
         </div>

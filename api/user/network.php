@@ -39,19 +39,24 @@ try {
     $stmt->execute([$user_id]);
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Get Total Points
-    $stmt = $pdo->prepare("SELECT total_points, referral_code FROM users WHERE id = ?");
+    // 3. Get user totals
+    $stmt = $pdo->prepare("SELECT total_points, total_shares, investment_shares, total_investment_amount, referral_code FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Combined shares = points-based shares + investment shares
+    $combined_shares = intval($user_data['total_shares']) + intval($user_data['investment_shares']);
 
     echo json_encode([
         'success' => true,
         'data' => [
-            'referrals_count' => count($referrals),
-            'network' => $referrals,
-            'earnings' => $transactions,
-            'total_points' => $user_data['total_points'],
-            'referral_code' => $user_data['referral_code']
+            'referrals_count'        => count($referrals),
+            'network'                => $referrals,
+            'earnings'               => $transactions,
+            'total_points'           => $user_data['total_points'],
+            'total_shares'           => $combined_shares,
+            'total_investment_amount'=> $user_data['total_investment_amount'],
+            'referral_code'          => $user_data['referral_code'],
         ]
     ]);
 

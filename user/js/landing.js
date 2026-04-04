@@ -142,7 +142,7 @@ async function fetchContent(category) {
 function renderHome(ads) {
   const content = document.getElementById("landingContent");
   const userElement = document.querySelector(".dropdown-header strong");
-  const userName = userElement ? userElement.innerText.split(" ")[0] : "Member";
+  const userName = userElement ? userElement.innerText.trim() : "Member";
 
   // Find the first video from advertisements for hero banner
   let heroVideo = null;
@@ -540,7 +540,7 @@ async function handleEnquire(button, type, id, title) {
 function renderGallery(items, category) {
   const content = document.getElementById("landingContent");
   const userElement = document.querySelector(".dropdown-header strong");
-  const userName = userElement ? userElement.innerText.split(" ")[0] : "Member";
+  const userName = userElement ? userElement.innerText.trim() : "Member";
 
   let heroHTML = "";
   if (category === "properties") {
