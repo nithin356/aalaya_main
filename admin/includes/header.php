@@ -63,6 +63,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li class="nav-item">
+                <a href="register_user.php" class="nav-link <?php echo $current_page == 'register_user.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Register User</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="network.php" class="nav-link <?php echo $current_page == 'network.php' ? 'active' : ''; ?>">
                     <i class="bi bi-diagram-3"></i>
                     <span>Network</span>
@@ -120,12 +126,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="bids.php" class="nav-link <?php echo $current_page == 'bids.php' ? 'active' : ''; ?>">
                     <i class="bi bi-hammer"></i>
                     <span>Property Bids</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="register_user.php" class="nav-link <?php echo $current_page == 'register_user.php' ? 'active' : ''; ?>">
-                    <i class="bi bi-person-plus-fill"></i>
-                    <span>Register User</span>
                 </a>
             </li>
             <li class="nav-item" style="margin-top: auto;">

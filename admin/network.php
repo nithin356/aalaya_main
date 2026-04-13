@@ -378,11 +378,6 @@ function renderOrgChart($nodes, $isRoot = false) {
         <h3><?php echo count($users) - count($tree); ?></h3>
         <p>Referred Users</p>
     </div>
-    <div class="stat-card">
-        <button class="btn-primary w-100" onclick="showRegisterModal()">
-            <i class="bi bi-person-plus-fill me-2"></i> Register New User
-        </button>
-    </div>
 </div>
 
 <!-- Zoom + Pan Controls -->
@@ -416,56 +411,6 @@ function renderOrgChart($nodes, $isRoot = false) {
     </div><!-- /org-canvas -->
 </div>
 
-<!-- Register User Modal -->
-<div class="modal fade" id="registerUserModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Register New User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="registerUserForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name <span class="text-muted small">(Optional)</span></label>
-                        <input type="text" name="full_name" class="form-input" placeholder="Enter full name">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                        <input type="tel" name="phone" class="form-input" required pattern="[0-9]{10}" maxlength="10" title="10 digit mobile number" placeholder="Enter 10-digit phone">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email <span class="text-muted small">(Optional)</span></label>
-                        <input type="email" name="email" class="form-input" placeholder="Enter email address">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Aadhaar Number <span class="text-danger">*</span></label>
-                        <input type="text" name="aadhaar_number" class="form-input" required pattern="[0-9]{12}" title="12 digit Aadhaar number" maxlength="12" placeholder="12-digit Aadhaar">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">PAN Number <span class="text-danger">*</span></label>
-                        <input type="text" name="pan_number" id="admin_pan_number" class="form-input" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Valid PAN Format (e.g. ABCDE1234F)" maxlength="10" placeholder="10-char PAN" style="text-transform: uppercase;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Referred By <span class="text-muted small">(Optional)</span></label>
-                        <select name="referrer_code" class="form-select user-select-dropdown">
-                            <option value="">-- Select Referrer --</option>
-                            <?php foreach ($users as $u): ?>
-                                <option value="<?php echo $u['referral_code']; ?>">
-                                    <?php echo htmlspecialchars($u['full_name']); ?> (<?php echo $u['referral_code']; ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-primary px-4">Register User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -532,64 +477,6 @@ container.addEventListener('wheel', e => {
     zoomTree(e.deltaY < 0 ? 0.05 : -0.05);
 }, { passive: false });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const el = document.getElementById('registerUserModal');
-    if (el && el.parentNode !== document.body) document.body.appendChild(el);
-});
-
-function showRegisterModal() {
-    const modalEl = document.getElementById('registerUserModal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-}
-
-// Convert PAN to uppercase in real-time
-const adminPanInput = document.getElementById('admin_pan_number');
-if (adminPanInput) {
-    adminPanInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-}
-
-document.getElementById('registerUserForm').addEventListener('submit', async function(e) {
-    if (!this.checkValidity()) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.add('was-validated');
-        return;
-    }
-
-    e.preventDefault();
-    const btn = this.querySelector('button[type="submit"]');
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
-
-    try {
-        const formData = new FormData(this);
-        // Ensure uppercase PAN
-        const pan = formData.get('pan_number');
-        if (pan) formData.set('pan_number', pan.toUpperCase());
-
-        const response = await fetch('../api/user/admin_register_user.php', { method: 'POST', body: formData });
-        const result = await response.json();
-
-        if (result.success) {
-            showToast.success(result.message);
-            const modalEl = document.getElementById('registerUserModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast.error(result.message);
-        }
-    } catch (err) {
-        showToast.error("Failed to register user: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-    }
-});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
