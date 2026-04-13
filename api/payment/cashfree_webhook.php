@@ -129,7 +129,7 @@ try {
     if ($orderStatus === 'PAID' || $eventType === 'PAYMENT_SUCCESS_WEBHOOK') {
         $currentStatus = $invoice['status'];
 
-        // Already paid? Skip
+        // Already paid? Skip (prevents double reward if callback already ran)
         if ($currentStatus === 'paid') {
             webhookLog("Invoice #$invoiceId already paid. Skipping.");
             http_response_code(200);
@@ -137,21 +137,13 @@ try {
             exit;
         }
 
-        // Already pending_verification with the same order? Skip
-        if ($currentStatus === 'pending_verification' && $invoice['payment_id'] === $orderId) {
-            webhookLog("Invoice #$invoiceId already pending_verification with same order. Skipping.");
-            http_response_code(200);
-            echo json_encode(['status' => 'ok', 'message' => 'Already pending_verification']);
-            exit;
-        }
-
         $pdo->beginTransaction();
 
-        // Update invoice to pending_verification
+        // Auto-approve directly to 'paid' — Cashfree already confirmed, no admin review needed
         $utrValue = $bankReference ?: $orderId;
         $stmt = $pdo->prepare("
-            UPDATE invoices 
-            SET status = 'pending_verification', 
+            UPDATE invoices
+            SET status = 'paid',
                 payment_id = ?,
                 payment_method = 'cashfree',
                 manual_utr_id = ?,
@@ -160,17 +152,26 @@ try {
         ");
         $stmt->execute([$orderId, $utrValue, $invoiceId]);
 
+        // Run reward logic for registration/subscription fees
+        if (in_array($invoice['description'], ['Registration Fee', 'Subscription Fee'])) {
+            $pdo->prepare("UPDATE users SET total_points = total_points + ? WHERE id = ?")
+               ->execute([$orderAmount ?: $invoice['amount'], $invoice['user_id']]);
+            $pdo->prepare("INSERT INTO referral_transactions (user_id, referred_user_id, level, points_earned, percentage, transaction_type) VALUES (?, ?, 0, ?, 100, 'subscription_reward')")
+               ->execute([$invoice['user_id'], $invoice['user_id'], $orderAmount ?: $invoice['amount']]);
+            webhookLog("Reward points added for user #{$invoice['user_id']}");
+        }
+
         // Log to audit trail
         $stmt = $pdo->prepare("
-            INSERT INTO invoice_audit_log 
+            INSERT INTO invoice_audit_log
             (invoice_id, user_id, admin_user, action, old_status, new_status, reason, payment_id, payment_method, manual_utr_id, amount, extra_data)
-            VALUES (?, ?, 'cashfree_webhook', 'webhook_confirmed', ?, 'pending_verification', ?, ?, 'cashfree', ?, ?, ?)
+            VALUES (?, ?, 'cashfree_webhook', 'approved', ?, 'paid', ?, ?, 'cashfree', ?, ?, ?)
         ");
         $stmt->execute([
             $invoiceId,
             $invoice['user_id'],
             $currentStatus,
-            "Payment confirmed via Cashfree webhook. Event: $eventType. Bank Ref: $bankReference",
+            "Auto-approved via Cashfree webhook. Event: $eventType. Bank Ref: $bankReference",
             $orderId,
             $utrValue,
             $orderAmount,
@@ -185,7 +186,7 @@ try {
         ]);
 
         $pdo->commit();
-        webhookLog("SUCCESS: Invoice #$invoiceId updated to pending_verification (was: $currentStatus)");
+        webhookLog("SUCCESS: Invoice #$invoiceId auto-approved to paid (was: $currentStatus)");
     } else {
         webhookLog("Non-PAID event for Invoice #$invoiceId. Status: $orderStatus. No action taken.");
     }

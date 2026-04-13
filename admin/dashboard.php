@@ -83,13 +83,43 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Recent Activity Table -->
+<!-- Recent Registrations Table -->
+<div class="data-card mt-4">
+    <div class="card-header">
+        <h2>Recent Registrations</h2>
+        <a href="users_management.php" class="btn-link" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.875rem;">View All <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="table-responsive">
+        <table id="dashboardRegistrationsTable" class="table table-hover" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Account Created</th>
+                    <th>Payment Status</th>
+                    <th>Amount</th>
+                    <th>Payment Date</th>
+                </tr>
+            </thead>
+            <tbody id="dashboardRegistrationsBody">
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 48px 0;">
+                        <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                        Loading...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Enquiries Table -->
 <div class="data-card mt-4">
     <div class="card-header">
         <h2>Recent Enquiries</h2>
         <a href="enquiries.php" class="btn-link" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.875rem;">View All <i class="bi bi-arrow-right"></i></a>
     </div>
-    
     <div class="table-responsive">
         <table id="dashboardEnquiriesTable" class="table table-hover" style="width:100%;">
             <thead>

@@ -285,7 +285,7 @@ function renderTable(data) {
         responsive: true,
         pageLength: 25,
         lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
-        order: [[4, 'desc']],
+        order: [[6, 'desc']],
         columnDefs: [{ orderable: false, targets: [7] }]
     });
 }

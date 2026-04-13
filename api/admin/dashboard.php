@@ -70,6 +70,27 @@ try {
     $stmtTotalInvestments = $pdo->query("SELECT SUM(amount) as total FROM investments");
     $totalInvestments = $stmtTotalInvestments->fetchColumn() ?: 0;
 
+    // 10. Recent Registrations (Last 10 users with payment info)
+    $stmtRecentUsers = $pdo->query("
+        SELECT
+            u.id, u.full_name, u.phone,
+            u.created_at AS account_created,
+            i.status AS payment_status,
+            i.amount AS payment_amount,
+            i.updated_at AS payment_date
+        FROM users u
+        LEFT JOIN invoices i ON i.id = (
+            SELECT id FROM invoices
+            WHERE user_id = u.id
+              AND description IN ('Registration Fee', 'Subscription Fee')
+            ORDER BY id DESC LIMIT 1
+        )
+        WHERE u.is_deleted = 0
+        ORDER BY u.created_at DESC
+        LIMIT 10
+    ");
+    $recentRegistrations = $stmtRecentUsers->fetchAll(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'success' => true,
         'stats' => [
@@ -81,6 +102,7 @@ try {
             'total_investments' => $totalInvestments
         ],
         'recent_enquiries' => $recentEnquiries,
+        'recent_registrations' => $recentRegistrations,
         'analytics' => [
             'income_trend' => $incomeTrend,
             'user_growth' => $userGrowth

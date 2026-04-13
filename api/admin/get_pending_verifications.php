@@ -41,11 +41,11 @@ try {
                 ORDER BY i.updated_at DESC";
     } else {
         // Default: pending_verification
-        $sql = "SELECT i.*, u.full_name, u.phone, u.email 
-                FROM invoices i 
-                JOIN users u ON i.user_id = u.id 
-                WHERE i.status = 'pending_verification' 
-                ORDER BY i.updated_at ASC";
+        $sql = "SELECT i.*, u.full_name, u.phone, u.email
+                FROM invoices i
+                JOIN users u ON i.user_id = u.id
+                WHERE i.status = 'pending_verification'
+                ORDER BY i.updated_at DESC";
     }
 
     $stmt = $pdo->query($sql);

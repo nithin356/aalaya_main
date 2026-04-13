@@ -13,6 +13,7 @@ async function fetchDashboardStats() {
 
         if (result.success) {
             updateStats(result.stats);
+            updateRecentRegistrations(result.recent_registrations);
             updateRecentEnquiries(result.recent_enquiries);
             renderCharts(result.analytics);
         } else {
@@ -79,6 +80,66 @@ function renderCharts(analytics) {
             responsive: true,
             plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+function updateRecentRegistrations(users) {
+    const tbody = document.getElementById('dashboardRegistrationsBody');
+    if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:48px 0;"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>No registrations yet</td></tr>`;
+        return;
+    }
+
+    const statusMap = {
+        paid: { cls: 'status-active', label: 'Paid' },
+        pending: { cls: 'status-pending', label: 'Pending' },
+        pending_verification: { cls: 'status-info', label: 'Verifying' },
+        rejected: { cls: 'status-banned', label: 'Rejected' },
+    };
+
+    tbody.innerHTML = users.map(u => {
+        const s = statusMap[u.payment_status] || { cls: 'status-pending', label: u.payment_status || 'No Invoice' };
+        const created = new Date(u.account_created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const createdTime = new Date(u.account_created).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        const payDate = u.payment_date && u.payment_status === 'paid'
+            ? new Date(u.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '—';
+        const payTime = u.payment_date && u.payment_status === 'paid'
+            ? new Date(u.payment_date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+            : '';
+        const amount = u.payment_amount ? '₹' + parseFloat(u.payment_amount).toLocaleString('en-IN') : '—';
+
+        return `<tr>
+            <td>#${u.id}</td>
+            <td><div style="font-weight:600;">${u.full_name || '—'}</div></td>
+            <td><div class="small">${u.phone}</div></td>
+            <td data-order="${u.account_created}">
+                <div>${created}</div>
+                <div class="small text-muted">${createdTime}</div>
+            </td>
+            <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+            <td>${amount}</td>
+            <td data-order="${u.payment_date || ''}">
+                <div>${payDate}</div>
+                ${payTime ? `<div class="small text-muted">${payTime}</div>` : ''}
+            </td>
+        </tr>`;
+    }).join('');
+
+    if ($.fn.dataTable.isDataTable('#dashboardRegistrationsTable')) {
+        $('#dashboardRegistrationsTable').DataTable().destroy();
+    }
+    $('#dashboardRegistrationsTable').DataTable({
+        ordering: true,
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50], [10, 25, 50]],
+        order: [[3, 'desc']],
+        columnDefs: [{ orderable: false, targets: [] }],
+        language: {
+            emptyTable: '<div class="text-center py-4"><i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>No registrations found</div>',
+            zeroRecords: '<div class="text-center py-4"><i class="bi bi-search fs-2 d-block mb-2 text-muted"></i>No matching records</div>'
         }
     });
 }
