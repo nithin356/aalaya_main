@@ -122,6 +122,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span>Property Bids</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="register_user.php" class="nav-link <?php echo $current_page == 'register_user.php' ? 'active' : ''; ?>">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Register User</span>
+                </a>
+            </li>
             <li class="nav-item" style="margin-top: auto;">
                 <a href="../api/admin/logout.php" class="nav-link logout">
                     <i class="bi bi-box-arrow-right"></i>

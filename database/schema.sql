@@ -180,6 +180,24 @@ CREATE TABLE IF NOT EXISTS invoice_audit_log (
     INDEX idx_user_id (user_id)
 );
 
+-- 11. digi_pending_registrations (Temporary store for DigiLocker-verified identity during invite registration)
+CREATE TABLE IF NOT EXISTS digi_pending_registrations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    invite_ref VARCHAR(512) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    pan_number VARCHAR(20) NOT NULL,
+    aadhar_no VARCHAR(20) NOT NULL,
+    dob VARCHAR(20) DEFAULT '',
+    gender VARCHAR(10) DEFAULT '',
+    address TEXT DEFAULT '',
+    photo MEDIUMTEXT DEFAULT '',
+    fathername VARCHAR(200) DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    INDEX idx_invite_ref (invite_ref(255)),
+    INDEX idx_expires_at (expires_at)
+);
+
 -- Insert default referral configuration
 INSERT INTO system_config (config_key, config_value, description) VALUES
 ('referral_level1_percentage', '20', 'Level 1 referral percentage'),

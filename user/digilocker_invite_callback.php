@@ -21,6 +21,7 @@ if (!$client_token || !$state) {
 
 $config  = parse_ini_file(__DIR__ . '/../config/config.ini', true);
 $base    = rtrim($config['digilocker_meon']['base_url'] ?? 'https://digilocker.meon.co.in', '/');
+require_once __DIR__ . '/../includes/db.php';
 
 // ---- Retrieve data from Meon ----
 $ch = curl_init("$base/v2/send_entire_data");
@@ -49,8 +50,7 @@ if (!$resp || ($resp['code'] ?? 0) !== 200 || !($resp['success'] ?? false)) {
 
 $d = $resp['data'] ?? [];
 
-// Store verified identity in session — used by invite_register_submit.php
-$_SESSION['digi_verified'] = [
+$verified = [
     'name'        => trim($d['name']           ?? ''),
     'pan_number'  => strtoupper(trim($d['pan_number']  ?? '')),
     'aadhar_no'   => trim($d['aadhar_no']      ?? ''),
@@ -60,6 +60,35 @@ $_SESSION['digi_verified'] = [
     'photo'       => trim($d['adharimg']       ?? ''),
     'fathername'  => trim($d['fathername']     ?? ''),
 ];
+
+// Store verified identity in session (primary path)
+$_SESSION['digi_verified'] = $verified;
+
+// Also persist to DB keyed by invite_ref so session loss doesn't block registration
+if ($invite_ref) {
+    try {
+        $pdo = getDB();
+        // Delete any previous pending entry for this invite ref
+        $pdo->prepare("DELETE FROM digi_pending_registrations WHERE invite_ref = ?")->execute([$invite_ref]);
+        $pdo->prepare(
+            "INSERT INTO digi_pending_registrations
+                (invite_ref, name, pan_number, aadhar_no, dob, gender, address, photo, fathername, expires_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 2 HOUR))"
+        )->execute([
+            $invite_ref,
+            $verified['name'],
+            $verified['pan_number'],
+            $verified['aadhar_no'],
+            $verified['dob'],
+            $verified['gender'],
+            $verified['address'],
+            $verified['photo'],
+            $verified['fathername'],
+        ]);
+    } catch (Exception $e) {
+        // Non-fatal — session fallback still works
+    }
+}
 
 // Clean up DigiLocker session keys (no longer needed)
 unset($_SESSION['digi_client_token'], $_SESSION['digi_state']);

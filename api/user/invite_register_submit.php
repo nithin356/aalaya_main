@@ -25,8 +25,36 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pdo = getDB();
 
 try {
-    // --- DigiLocker verified identity (must be in session) ---
+    // --- DigiLocker verified identity ---
+    // Primary: session. Fallback: DB (handles session loss during external DigiLocker redirect).
     $digi = $_SESSION['digi_verified'] ?? null;
+
+    if (!$digi || empty($digi['name']) || empty($digi['pan_number']) || empty($digi['aadhar_no'])) {
+        // Try DB fallback using the invite token
+        $invite_token_raw = trim($_POST['invite_token'] ?? '');
+        if ($invite_token_raw) {
+            $dbRow = $pdo->prepare(
+                "SELECT * FROM digi_pending_registrations
+                  WHERE invite_ref = ? AND expires_at > NOW()
+                  ORDER BY created_at DESC LIMIT 1"
+            );
+            $dbRow->execute([$invite_token_raw]);
+            $row = $dbRow->fetch(PDO::FETCH_ASSOC);
+            if ($row && !empty($row['name']) && !empty($row['pan_number']) && !empty($row['aadhar_no'])) {
+                $digi = [
+                    'name'       => $row['name'],
+                    'pan_number' => $row['pan_number'],
+                    'aadhar_no'  => $row['aadhar_no'],
+                    'dob'        => $row['dob']        ?? '',
+                    'gender'     => $row['gender']     ?? '',
+                    'address'    => $row['address']    ?? '',
+                    'photo'      => $row['photo']      ?? '',
+                    'fathername' => $row['fathername'] ?? '',
+                ];
+            }
+        }
+    }
+
     if (!$digi || empty($digi['name']) || empty($digi['pan_number']) || empty($digi['aadhar_no'])) {
         throw new Exception('Identity verification not completed. Please verify with DigiLocker first.');
     }
@@ -124,8 +152,9 @@ try {
 
     $invoice_id = $pdo->lastInsertId();
 
-    // --- Clear DigiLocker session data ---
+    // --- Clear DigiLocker session data and DB pending record ---
     unset($_SESSION['digi_verified'], $_SESSION['digi_invite_ref']);
+    $pdo->prepare("DELETE FROM digi_pending_registrations WHERE invite_ref = ?")->execute([$invite_token]);
 
     // --- Set login session ---
     $_SESSION['user_id']          = $user_id;

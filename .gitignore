@@ -12,3 +12,7 @@ assets/uploads/*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Flutter webview project (too large for GitHub)
+aalaya_webview/
+aalaya_webview.zip
