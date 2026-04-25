@@ -1,15 +1,21 @@
 <?php
 /**
  * Invite-Based Registration API
- * Identity (Aadhaar, PAN, Name, DOB, Gender, Address) comes from
- * $_SESSION['digi_verified'] set by digilocker_invite_callback.php.
+ * Aadhaar comes from $_SESSION['digi_verified'] (set by digilocker_invite_callback.php).
+ * Name, DOB, Gender, Address are prefilled from DigiLocker but user can edit.
+ * PAN is optional at registration (can be verified later in profile).
  *
  * POST fields:
  *   invite_token      - encrypted invite token
- *   phone             - 10-digit mobile
+ *   full_name         - user-typed or DigiLocker-prefilled
+ *   phone             - 10-digit mobile (Aadhaar-linked)
  *   email             - email address
  *   password          - min 6 chars
  *   confirm_password
+ *   pan_number        - optional
+ *   dob               - optional
+ *   gender            - optional
+ *   address           - optional
  */
 header('Content-Type: application/json');
 session_start();
@@ -25,11 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pdo = getDB();
 
 try {
-    // --- DigiLocker verified identity ---
+    // --- DigiLocker verified Aadhaar ---
     // Primary: session. Fallback: DB (handles session loss during external DigiLocker redirect).
     $digi = $_SESSION['digi_verified'] ?? null;
 
-    if (!$digi || empty($digi['name']) || empty($digi['pan_number']) || empty($digi['aadhar_no'])) {
+    if (!$digi || empty($digi['aadhar_no'])) {
         // Try DB fallback using the invite token
         $invite_token_raw = trim($_POST['invite_token'] ?? '');
         if ($invite_token_raw) {
@@ -40,35 +46,35 @@ try {
             );
             $dbRow->execute([$invite_token_raw]);
             $row = $dbRow->fetch(PDO::FETCH_ASSOC);
-            if ($row && !empty($row['name']) && !empty($row['pan_number']) && !empty($row['aadhar_no'])) {
+            if ($row && !empty($row['aadhar_no'])) {
                 $digi = [
-                    'name'       => $row['name'],
-                    'pan_number' => $row['pan_number'],
+                    'name'       => $row['name']       ?? '',
+                    'pan_number' => $row['pan_number']  ?? '',
                     'aadhar_no'  => $row['aadhar_no'],
-                    'dob'        => $row['dob']        ?? '',
-                    'gender'     => $row['gender']     ?? '',
-                    'address'    => $row['address']    ?? '',
-                    'photo'      => $row['photo']      ?? '',
-                    'fathername' => $row['fathername'] ?? '',
+                    'dob'        => $row['dob']         ?? '',
+                    'gender'     => $row['gender']      ?? '',
+                    'address'    => $row['address']     ?? '',
+                    'photo'      => $row['photo']       ?? '',
+                    'fathername' => $row['fathername']   ?? '',
                 ];
             }
         }
     }
 
-    if (!$digi || empty($digi['name']) || empty($digi['pan_number']) || empty($digi['aadhar_no'])) {
-        throw new Exception('Identity verification not completed. Please verify with DigiLocker first.');
+    if (!$digi || empty($digi['aadhar_no'])) {
+        throw new Exception('Aadhaar verification not completed. Please verify with DigiLocker first.');
     }
 
-    $full_name    = $digi['name'];
-    $pan_number   = strtoupper($digi['pan_number']);
-    $aadhaar      = $digi['aadhar_no'];
-    $dob          = $digi['dob']        ?? '';
-    $gender       = $digi['gender']     ?? '';
-    $address      = $digi['address']    ?? '';
-    $photo        = $digi['photo']      ?? '';
+    $aadhaar = $digi['aadhar_no'];
+    $photo   = $digi['photo'] ?? '';
 
-    // --- POST inputs ---
+    // --- POST inputs (user-typed, with DigiLocker prefill fallback) ---
     $invite_token     = trim($_POST['invite_token']     ?? '');
+    $full_name        = trim($_POST['full_name']        ?? '') ?: trim($digi['name'] ?? '');
+    $pan_number       = strtoupper(trim($_POST['pan_number'] ?? ''));
+    $dob              = trim($_POST['dob']              ?? '') ?: trim($digi['dob'] ?? '');
+    $gender           = trim($_POST['gender']           ?? '') ?: trim($digi['gender'] ?? '');
+    $address          = trim($_POST['address']          ?? '') ?: trim($digi['address'] ?? '');
     $phone            = trim($_POST['phone']            ?? '');
     $email            = trim($_POST['email']            ?? '');
     $password         = $_POST['password']              ?? '';
@@ -77,6 +83,10 @@ try {
     // --- Validation ---
     if (!$invite_token || !$phone || !$email || !$password) {
         throw new Exception('All fields are required.');
+    }
+
+    if (empty($full_name)) {
+        throw new Exception('Full name is required.');
     }
 
     if ($password !== $confirm_password) {
@@ -111,11 +121,20 @@ try {
 
     $referrer_id = $referrer['id'];
 
+    // --- PAN format validation (if provided) ---
+    if ($pan_number && !preg_match('/^[A-Z]{5}[0-9]{4}[A-Z]$/', $pan_number)) {
+        throw new Exception('Invalid PAN format. Expected format: ABCDE1234F');
+    }
+
     // --- Duplicate check ---
-    $dupStmt = $pdo->prepare(
-        "SELECT id FROM users WHERE phone = ? OR email = ? OR pan_number = ? OR aadhaar_number = ?"
-    );
-    $dupStmt->execute([$phone, $email, $pan_number, $aadhaar]);
+    $dupSql = "SELECT id FROM users WHERE phone = ? OR email = ? OR aadhaar_number = ?";
+    $dupParams = [$phone, $email, $aadhaar];
+    if ($pan_number) {
+        $dupSql .= " OR pan_number = ?";
+        $dupParams[] = $pan_number;
+    }
+    $dupStmt = $pdo->prepare($dupSql);
+    $dupStmt->execute($dupParams);
     if ($dupStmt->fetch()) {
         throw new Exception('An account with this phone, email, PAN, or Aadhaar already exists.');
     }
@@ -128,12 +147,12 @@ try {
                 (full_name, email, phone, password, pan_number, aadhaar_number,
                  dob, gender, address, photo_link,
                  referral_code, referred_by, total_points,
-                 digilocker_verified, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, NOW())";
+                 digilocker_verified, pan_verified, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, 0, NOW())";
 
     $pdo->prepare($sql)->execute([
         $full_name, $email, $phone, $password_hash,
-        $pan_number, $aadhaar,
+        $pan_number ?: null, $aadhaar,
         $dob, $gender, $address, $photo,
         $new_ref_code, $referrer_id,
     ]);

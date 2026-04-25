@@ -29,8 +29,8 @@ try {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (!$phone || !$aadhaar_number || !$pan_number || !$password) {
-        throw new Exception("Mandatory fields missing: Phone, Password, Aadhaar, and PAN are required.");
+    if (!$phone || !$aadhaar_number || !$password) {
+        throw new Exception("Mandatory fields missing: Phone, Password, and Aadhaar are required.");
     }
 
     if ($password !== $confirm_password) {
@@ -84,10 +84,10 @@ try {
     }
 
     // Insert new user with password and auto-verified flag
-    $sql = "INSERT INTO users (full_name, email, phone, password, aadhaar_number, pan_number, referral_code, referred_by, total_points, digilocker_verified, created_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, NOW())";
+    $sql = "INSERT INTO users (full_name, email, phone, password, aadhaar_number, pan_number, referral_code, referred_by, total_points, digilocker_verified, pan_verified, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0.00, 1, 0, NOW())";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$full_name, $email, $phone, $password_hash, $aadhaar_number, $pan_number, $new_ref_code, $referrer_id]);
+    $stmt->execute([$full_name, $email, $phone, $password_hash, $aadhaar_number, $pan_number ?: null, $new_ref_code, $referrer_id]);
     
     $user_id = $pdo->lastInsertId();
 

@@ -227,6 +227,71 @@ $total_shares = $user['total_shares'] ?? 0;
                         </div>
                     </div>
 
+                    <!-- PAN Verification Section -->
+                    <div class="mt-3">
+                        <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <span class="d-block text-white-50 small text-uppercase fw-bold mb-2">PAN Verification</span>
+
+                            <?php if (!empty($user['pan_number']) && !empty($user['pan_verified']) && $user['pan_verified'] == 1): ?>
+                                <!-- State 1: PAN Verified -->
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="text-white fw-medium"><?php echo substr($user['pan_number'], 0, 5) . '****' . substr($user['pan_number'], -1); ?></span>
+                                    <span class="badge rounded-pill" style="background:rgba(34,197,94,0.15); color:#22c55e; font-size:0.72rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Verified
+                                    </span>
+                                </div>
+
+                            <?php elseif (!empty($user['pan_number'])): ?>
+                                <!-- State 2: PAN entered but not verified -->
+                                <div id="panVerifySection">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="text-white fw-medium"><?php echo htmlspecialchars($user['pan_number']); ?></span>
+                                        <span class="badge rounded-pill" style="background:rgba(234,179,8,0.15); color:#facc15; font-size:0.72rem;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Unverified
+                                        </span>
+                                    </div>
+                                    <?php if (empty($user['dob'])): ?>
+                                    <input type="text" id="panDobInput" class="form-control bg-dark border-secondary text-white mb-2" placeholder="Date of Birth (DD-MM-YYYY)" style="font-size:0.85rem;">
+                                    <?php endif; ?>
+                                    <button class="btn btn-sm btn-brand-pink rounded-pill px-3" onclick="verifyPan('<?php echo htmlspecialchars($user['pan_number']); ?>')">
+                                        <i class="bi bi-shield-check me-1"></i> Verify PAN
+                                    </button>
+                                </div>
+                                <div id="panVerifiedResult" style="display:none;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-white fw-medium" id="panVerifiedNumber"></span>
+                                        <span class="badge rounded-pill" style="background:rgba(34,197,94,0.15); color:#22c55e; font-size:0.72rem;">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Verified
+                                        </span>
+                                    </div>
+                                </div>
+
+                            <?php else: ?>
+                                <!-- State 3: No PAN -->
+                                <div id="panAddSection">
+                                    <p class="text-warning small mb-2"><i class="bi bi-exclamation-triangle me-1"></i>PAN not added</p>
+                                    <input type="text" id="panInput" class="form-control bg-dark border-secondary text-white mb-2"
+                                           placeholder="Enter PAN (e.g. ABCDE1234F)" maxlength="10"
+                                           style="text-transform:uppercase; font-size:0.85rem;">
+                                    <?php if (empty($user['dob'])): ?>
+                                    <input type="text" id="panDobInput" class="form-control bg-dark border-secondary text-white mb-2" placeholder="Date of Birth (DD-MM-YYYY)" style="font-size:0.85rem;">
+                                    <?php endif; ?>
+                                    <button class="btn btn-sm btn-brand-pink rounded-pill px-3" onclick="addAndVerifyPan()">
+                                        <i class="bi bi-plus-circle me-1"></i> Add & Verify PAN
+                                    </button>
+                                </div>
+                                <div id="panVerifiedResult" style="display:none;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-white fw-medium" id="panVerifiedNumber"></span>
+                                        <span class="badge rounded-pill" style="background:rgba(34,197,94,0.15); color:#22c55e; font-size:0.72rem;">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Verified
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
                     <div class="mt-4 pt-4 border-top border-white border-opacity-10">
                         <a href="../api/user/logout.php" class="btn btn-brand-pink w-100 rounded-pill fw-bold py-3">
                             <i class="bi bi-box-arrow-right"></i> Sign Out
@@ -434,6 +499,58 @@ $total_shares = $user['total_shares'] ?? 0;
                 showToast.error('Failed to change password.');
             }
         }
+
+        // ---- PAN Verification ----
+        async function verifyPan(pan) {
+            const dob = document.getElementById('panDobInput')?.value || '';
+            await doPanVerify(pan, dob);
+        }
+
+        async function addAndVerifyPan() {
+            const panEl = document.getElementById('panInput');
+            const pan = (panEl?.value || '').toUpperCase().trim();
+            if (!pan || !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) {
+                showToast.error('Enter a valid PAN (e.g. ABCDE1234F)');
+                return;
+            }
+            const dob = document.getElementById('panDobInput')?.value || '';
+            await doPanVerify(pan, dob);
+        }
+
+        async function doPanVerify(pan, dob) {
+            const btns = document.querySelectorAll('[onclick*="verifyPan"], [onclick*="addAndVerifyPan"]');
+            btns.forEach(b => { b.disabled = true; b.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...'; });
+
+            try {
+                const fd = new FormData();
+                fd.append('pan', pan);
+                if (dob) fd.append('dob', dob);
+                const res = await fetch('../api/user/save_pan.php', { method: 'POST', body: fd });
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast.success(result.message);
+                    const addSec = document.getElementById('panAddSection');
+                    const verifySec = document.getElementById('panVerifySection');
+                    const resultSec = document.getElementById('panVerifiedResult');
+                    const numEl = document.getElementById('panVerifiedNumber');
+                    if (addSec) addSec.style.display = 'none';
+                    if (verifySec) verifySec.style.display = 'none';
+                    if (resultSec) resultSec.style.display = 'block';
+                    if (numEl) numEl.textContent = pan.substring(0,5) + '****' + pan.slice(-1);
+                } else {
+                    showToast.error(result.message);
+                    btns.forEach(b => { b.disabled = false; b.innerHTML = '<i class="bi bi-shield-check me-1"></i> Verify PAN'; });
+                }
+            } catch (err) {
+                showToast.error('Connection error. Please try again.');
+                btns.forEach(b => { b.disabled = false; b.innerHTML = '<i class="bi bi-shield-check me-1"></i> Verify PAN'; });
+            }
+        }
+
+        // PAN uppercase
+        const panInp = document.getElementById('panInput');
+        if (panInp) panInp.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
     </script>
 </body>
 </html>

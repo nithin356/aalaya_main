@@ -47,7 +47,7 @@ $digiResp = meonPost("$base/digi_url", [
     'client_token' => $client_token,
     'redirect_url' => $callback_url,
     'company_name' => $company,
-    'documents'    => 'aadhaar,pan',
+    'documents'    => 'aadhaar',
 ]);
 
 if (!$digiResp || ($digiResp['code'] ?? 0) !== 200 || !($digiResp['success'] ?? false)) {

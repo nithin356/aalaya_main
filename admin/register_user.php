@@ -44,8 +44,8 @@ $users = $pdo->query("SELECT full_name, referral_code FROM users WHERE digilocke
                                    title="12-digit Aadhaar number" placeholder="12-digit Aadhaar">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">PAN Number <span class="text-danger">*</span></label>
-                            <input type="text" name="pan_number" id="pan_number" class="form-input" required
+                            <label class="form-label">PAN Number <span class="text-muted small">(Optional)</span></label>
+                            <input type="text" name="pan_number" id="pan_number" class="form-input"
                                    pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10"
                                    title="Valid PAN format e.g. ABCDE1234F" placeholder="e.g. ABCDE1234F"
                                    style="text-transform:uppercase;">

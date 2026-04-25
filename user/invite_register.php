@@ -120,7 +120,7 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
         <h2>You've been personally invited to Aalaya.</h2>
         <p>Verify your identity securely with DigiLocker, then create your account to access exclusive property listings.</p>
         <ul class="feature-list">
-            <li class="feature-item"><i class="bi bi-shield-check-fill"></i><span>Aadhaar + PAN Verified</span></li>
+            <li class="feature-item"><i class="bi bi-shield-check-fill"></i><span>Aadhaar Verified Identity</span></li>
             <li class="feature-item"><i class="bi bi-people-fill"></i><span>Referral-Gated Network</span></li>
             <li class="feature-item"><i class="bi bi-lock-fill"></i><span>Secure &amp; Transparent</span></li>
         </ul>
@@ -160,7 +160,7 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
         <div id="step1" <?php echo ($digi_done && $digi_verified) ? 'style="display:none;"' : ''; ?>>
             <div class="auth-header">
                 <h1>Verify Your Identity</h1>
-                <p>Connect with DigiLocker to verify your Aadhaar &amp; PAN securely.</p>
+                <p>Connect with DigiLocker to verify your Aadhaar securely.</p>
             </div>
 
             <?php if ($digi_error && !in_array($digi_error, ['session', 'done'])): ?>
@@ -171,9 +171,9 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
             <?php endif; ?>
 
             <div class="digi-info-box">
-                <div><i class="bi bi-check-circle-fill"></i>Your Aadhaar and PAN will be fetched automatically</div>
-                <div><i class="bi bi-check-circle-fill"></i>No manual entry needed — data comes directly from DigiLocker</div>
+                <div><i class="bi bi-check-circle-fill"></i>Your Aadhaar will be verified automatically via DigiLocker</div>
                 <div><i class="bi bi-check-circle-fill"></i>100% secure, government-backed verification</div>
+                <div><i class="bi bi-info-circle-fill"></i>Use the phone number linked to your Aadhaar for OTP</div>
             </div>
 
             <button type="button" id="digiBtn" class="digi-btn">
@@ -190,45 +190,74 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
         <div id="step2" <?php echo ($digi_done && $digi_verified) ? '' : 'style="display:none;"'; ?>>
             <div class="auth-header">
                 <h1>Complete Registration</h1>
-                <p>Your identity is verified. Fill in the remaining details.</p>
+                <p>Your Aadhaar is verified. Fill in your details below.</p>
             </div>
 
             <!-- Verified badge -->
             <div class="digi-verified-badge">
-                <i class="bi bi-patch-check-fill"></i> Identity Verified via DigiLocker
+                <i class="bi bi-patch-check-fill"></i> Aadhaar Verified via DigiLocker
             </div>
-
-            <!-- Identity summary card -->
-            <?php if ($digi_verified): ?>
-            <div class="identity-card">
-                <div class="id-row">
-                    <span class="id-label"><i class="bi bi-person me-1"></i>Name</span>
-                    <span class="id-value"><?php echo htmlspecialchars($digi_verified['name']); ?></span>
-                </div>
-                <div class="id-row">
-                    <span class="id-label"><i class="bi bi-card-text me-1"></i>PAN</span>
-                    <span class="id-value"><?php echo htmlspecialchars($digi_verified['pan_number']); ?></span>
-                </div>
-                <div class="id-row">
-                    <span class="id-label"><i class="bi bi-fingerprint me-1"></i>Aadhaar</span>
-                    <span class="id-value"><?php echo htmlspecialchars($digi_verified['aadhar_no']); ?></span>
-                </div>
-                <div class="id-row">
-                    <span class="id-label"><i class="bi bi-calendar3 me-1"></i>DOB</span>
-                    <span class="id-value"><?php echo htmlspecialchars($digi_verified['dob']); ?></span>
-                </div>
-                <?php if (!empty($digi_verified['gender'])): ?>
-                <div class="id-row">
-                    <span class="id-label"><i class="bi bi-gender-ambiguous me-1"></i>Gender</span>
-                    <span class="id-value"><?php echo htmlspecialchars($digi_verified['gender']); ?></span>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
 
             <form id="registerForm" autocomplete="off">
                 <input type="hidden" name="invite_token" value="<?php echo htmlspecialchars($raw_token); ?>">
 
+                <!-- Aadhaar (read-only, verified) -->
+                <?php if ($digi_verified): ?>
+                <div class="mb-3">
+                    <label style="font-size:0.75rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; display:block;">
+                        <i class="bi bi-fingerprint me-1"></i>Aadhaar (Verified)
+                    </label>
+                    <div style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:12px; padding:12px 16px; color:#22c55e; font-weight:600; font-size:0.95rem;">
+                        <i class="bi bi-check-circle-fill me-1"></i> <?php echo htmlspecialchars($digi_verified['aadhar_no']); ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Full Name (editable, prefilled from DigiLocker) -->
+                <div class="mb-3">
+                    <div class="input-wrapper">
+                        <input type="text" name="full_name" id="regFullName" class="form-input"
+                               placeholder="Full Name (as per Aadhaar)" required>
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+
+                <!-- DOB (editable, prefilled) -->
+                <div class="mb-3">
+                    <div class="input-wrapper">
+                        <input type="text" name="dob" id="regDob" class="form-input"
+                               placeholder="Date of Birth (DD-MM-YYYY)">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+                </div>
+
+                <!-- Gender (editable, prefilled) -->
+                <div class="mb-3">
+                    <div class="input-wrapper">
+                        <select name="gender" id="regGender" class="form-input" style="appearance:auto;">
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Other</option>
+                        </select>
+                        <i class="bi bi-gender-ambiguous"></i>
+                    </div>
+                </div>
+
+                <!-- PAN (optional) -->
+                <div class="mb-3">
+                    <div class="input-wrapper">
+                        <input type="text" name="pan_number" id="regPan" class="form-input"
+                               placeholder="PAN Number (Optional)" maxlength="10"
+                               style="text-transform:uppercase;">
+                        <i class="bi bi-card-text"></i>
+                    </div>
+                    <p style="font-size:0.72rem; color:rgba(255,255,255,0.35); margin:4px 0 0 4px;">
+                        Optional at registration. You can verify PAN later from your profile.
+                    </p>
+                </div>
+
+                <!-- Phone -->
                 <div class="mb-3">
                     <div class="input-wrapper">
                         <input type="tel" name="phone" class="form-input"
@@ -236,8 +265,12 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
                                pattern="[0-9]{10}" required>
                         <i class="bi bi-phone"></i>
                     </div>
+                    <p style="font-size:0.72rem; color:rgba(249,105,170,0.7); margin:4px 0 0 4px;">
+                        <i class="bi bi-info-circle me-1"></i>Use the phone number linked to your Aadhaar
+                    </p>
                 </div>
 
+                <!-- Email -->
                 <div class="mb-3">
                     <div class="input-wrapper">
                         <input type="email" name="email" class="form-input"
@@ -246,6 +279,7 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
                     </div>
                 </div>
 
+                <!-- Password -->
                 <div class="mb-3">
                     <div class="input-wrapper password-field">
                         <input type="password" id="regPassword" name="password" class="form-input"
@@ -257,6 +291,7 @@ $digi_js = $digi_verified ? json_encode($digi_verified, JSON_HEX_TAG | JSON_HEX_
                     </div>
                 </div>
 
+                <!-- Confirm Password -->
                 <div class="mb-3">
                     <div class="input-wrapper password-field">
                         <input type="password" id="regConfirmPassword" name="confirm_password" class="form-input"
@@ -317,6 +352,27 @@ const DIGI_DATA  = <?php echo $digi_js; ?>;
 const DIGI_DONE  = <?php echo ($digi_done && $digi_verified) ? 'true' : 'false'; ?>;
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    // ---- Prefill form fields from DigiLocker data ----
+    if (DIGI_DATA) {
+        const nameEl = document.getElementById('regFullName');
+        const dobEl  = document.getElementById('regDob');
+        const genEl  = document.getElementById('regGender');
+        const panEl  = document.getElementById('regPan');
+        if (nameEl && DIGI_DATA.name)       nameEl.value = DIGI_DATA.name;
+        if (dobEl  && DIGI_DATA.dob)        dobEl.value  = DIGI_DATA.dob;
+        if (panEl  && DIGI_DATA.pan_number) panEl.value  = DIGI_DATA.pan_number;
+        if (genEl  && DIGI_DATA.gender) {
+            const g = DIGI_DATA.gender.toUpperCase().charAt(0);
+            for (let opt of genEl.options) {
+                if (opt.value === g) { genEl.value = g; break; }
+            }
+        }
+    }
+
+    // PAN uppercase
+    const panInput = document.getElementById('regPan');
+    if (panInput) panInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 
     // ---- STEP 1: Trigger DigiLocker ----
     const digiBtn = document.getElementById('digiBtn');
