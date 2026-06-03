@@ -100,6 +100,11 @@ if (isset($_GET['ref'])) {
                 <a href="../terms_and_conditions.php" target="_blank">Terms & Conditions</a> | 
                 <a href="../refund_policy.php" target="_blank">Refund Policy</a>
             </p>
+            <p class="auth-footer" style="margin-top: 14px;">
+                <a href="../portfolio.php" style="color: #F969AA; font-weight: 600; text-decoration: none; font-size: 0.85rem;">
+                    <i class="bi bi-person-badge me-1"></i> Meet Our Founder
+                </a>
+            </p>
         </div>
     </div>
 
